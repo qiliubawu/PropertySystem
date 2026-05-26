@@ -15,21 +15,23 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      # Convert from SQL Server to SQLite for free cloud deployment
       - name: Add SQLite package
-        run: dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 8.0.*
+        run: |
+          sed -i '/<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer"/a \    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.*" />' PropertySystem.csproj
 
-      # Replace UseSqlServer with UseSqlite in Program.cs
       - name: Switch to SQLite
         run: |
-          sed -i 's/UseSqlServer/UseSqlite/' Program.cs
-          sed -i 's|Server=.*Database=PropertySystemDB.*Trusted_Connection=True.*TrustServerCertificate=True|Data Source=PropertySystem.db|' appsettings.json
+          sed -i 's/\.UseSqlServer/.UseSqlite/' Program.cs
+          sed -i 's|"Server=.*TrustServerCertificate=True"|"Data Source=PropertySystem.db"|' appsettings.json
+
+      - name: Restore
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish --configuration Release -o publish
+        run: dotnet publish --configuration Release --no-build -o publish
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

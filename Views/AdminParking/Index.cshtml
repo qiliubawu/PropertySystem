@@ -1,0 +1,66 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.ParkingSpace>
+@{
+    ViewData["Title"] = "车位管理";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>车位数据管理</h2>
+        <div>
+            <a href="/AdminParking/VisualBoard" class="btn btn-warning fw-bold text-dark me-2">查看车库地图</a>
+            <a href="/AdminParking/BatchCreate" class="btn btn-primary fw-bold me-2">智能车位布点</a>
+
+            <form method="post" action="/AdminParking/ClearAll" class="d-inline" onsubmit="return confirm('警告：将清空所有【未售出】的车位数据！确定吗？');">
+                <button type="submit" class="btn btn-outline-danger shadow-sm">一键清空空车位</button>
+            </form>
+        </div>
+
+    </div>
+    <hr />
+
+    <form method="get" class="row g-3 mb-4 bg-light p-3 border rounded">
+        <div class="col-auto"><input type="text" name="searchNo" class="form-control" placeholder="搜编号" value="@ViewBag.SearchNo" /></div>
+        <div class="col-auto">
+            <select name="searchStatus" class="form-select">
+                <option value="">-- 所有状态 --</option>
+                <option value="未绑定">未绑定</option>
+                <option value="已绑定">已绑定</option>
+            </select>
+        </div>
+        <div class="col-auto"><button type="submit" class="btn btn-primary">搜索</button></div>
+    </form>
+
+    <table class="table table-bordered table-striped text-center align-middle">
+        <thead class="table-dark"><tr><th>编号</th><th>位置</th><th>状态</th><th>所属业主</th><th>登记车牌</th><th>操作</th></tr></thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><strong class="text-primary fs-5">@item.ParkingNo</strong></td>
+                    <td><span class="badge bg-secondary">@item.Location</span></td>
+                    <td>@(item.Status == "未绑定" ? Html.Raw("<span class='badge bg-success'>空置</span>") : Html.Raw("<span class='badge bg-danger'>已售</span>"))</td>
+                    <td>@(item.Owner?.Name ?? "-")</td>
+                    <td>
+                        @if (item.Owner != null && !string.IsNullOrEmpty(item.Owner.CarPlate))
+                        {
+                            <span class="badge bg-primary fs-6">@item.Owner.CarPlate</span>
+                        }
+                        else
+                        {
+
+                            <span class="text-muted">-</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="/AdminParking/Edit/@item.Id" class="btn btn-sm btn-outline-primary">✏️</a>
+                        @if (item.Status == "未绑定")
+                        {
+                            <a href="/AdminParking/Delete/@item.Id" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定删除吗？');">🗑</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_Pagination" model="Model" />
+</div>

@@ -1,0 +1,113 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.User>
+@{
+    ViewData["Title"] = "内部员工管理";
+}
+
+<div class="container-fluid mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h5 class="fw-bold text-dark mb-0">内部人员与权限管理</h5>
+        <a href="/AdminStaff/Create" class="btn btn-sm btn-primary">办理新员工入职</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold p-2 small">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger fw-bold p-2 small">@TempData["Error"]</div>
+    }
+
+    <!-- 检索工具栏 -->
+    <form method="get" class="d-flex gap-2 mb-3 p-3 bg-white border">
+        <input type="text" name="searchName" class="form-control w-25" placeholder="搜索姓名或账号" value="@ViewBag.SearchName" />
+        <select name="searchRole" class="form-select w-25">
+            <option value="">-- 所有岗位 --</option>
+            <option value="Admin" selected="@(ViewBag.SearchRole == "Admin")">系统管理员 (Admin)</option>
+            <option value="FireSafety" selected="@(ViewBag.SearchRole == "FireSafety")">消防安全员 (FireSafety)</option>
+            <option value="Security" selected="@(ViewBag.SearchRole == "Security")">保安人员 (Security)</option>
+            <option value="Maintenance" selected="@(ViewBag.SearchRole == "Maintenance")">维修工程师 (Maintenance)</option>
+            <option value="Cleaner" selected="@(ViewBag.SearchRole == "Cleaner")">保洁人员 (Cleaner)</option>
+        </select>
+        <button type="submit" class="btn btn-primary">精确筛选</button>
+        <a href="/AdminStaff/Index" class="btn btn-light border text-muted">重置</a>
+
+    </form>
+
+    <table class="table table-bordered table-hover text-center align-middle bg-white">
+        <thead class="table-light">
+            <tr>
+                <th width="20%">员工姓名</th>
+                <th width="20%">登录账号 (工号)</th>
+                <th width="20%">系统密码</th>
+                <th width="25%">岗位角色 / 系统权限</th>
+                <th width="15%">系统操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-bold text-start">
+                        @item.FullName
+                    </td>
+                    <td class="text-primary fw-bold">@item.Username</td>
+                    <td>
+                        <!-- 高级交互：点击切换显示/隐藏密码 -->
+                        <span class="text-muted pwd-mask" style="cursor: pointer; user-select: none;" data-pwd="@item.Password" onclick="togglePwd(this)">****** (点击查看)</span>
+                    </td>
+                    <td>
+                        <!-- 修复并统一了角色徽章渲染 -->
+                        @if (item.Role == "Admin")
+                        {
+                            <span class="badge bg-danger">项目主管/管理员 (Admin)</span>
+                        }
+                        else if (item.Role == "FireSafety")
+                        {
+
+                            <span class="badge bg-danger" style="background-color: #e84118 !important;">消防安全员 (FireSafety)</span>
+                        }
+                        else if (item.Role == "Maintenance")
+                        {
+
+                            <span class="badge bg-info">维修工程师 (Maintenance)</span>
+                        }
+                        else if (item.Role == "Security")
+                        {
+
+                            <span class="badge bg-dark text-white">安保门卫 (Security)</span>
+                        }
+                        else if (item.Role == "Cleaner")
+                        {
+
+                            <span class="badge bg-success">保洁人员 (Cleaner)</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="/AdminStaff/Edit/@item.Id" class="text-primary text-decoration-none me-3">修改</a>
+                        <form method="post" action="/AdminStaff/Delete/@item.Id" class="d-inline" onsubmit="return confirm('警告：若注销该员工，将收回其所有后台登录权限，确认注销吗？');">
+                            <button type="submit" class="btn btn-link text-danger text-decoration-none p-0 m-0 border-0 align-baseline">注销</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_Pagination" model="Model" />
+</div>
+
+<script>
+    // 密码点击切换查看的 JS 逻辑
+    function togglePwd(element) {
+        var realPwd = element.getAttribute('data-pwd');
+        if (element.innerText.includes('******')) {
+            element.innerText = realPwd;
+            element.classList.remove('text-muted');
+            element.classList.add('text-danger', 'fw-bold');
+        } else {
+            element.innerText = '****** (点击查看)';
+            element.classList.remove('text-danger', 'fw-bold');
+            element.classList.add('text-muted');
+        }
+    }
+</script>

@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "智能群发中心";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 border-top border-3 border-primary">
+                <div class="card-header bg-white text-center py-3 border-bottom">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-send-check text-primary"></i> 智能消息并发推送台</h5>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success fw-bold shadow-sm">@TempData["Success"]</div>
+                    }
+
+                    <div class="alert alert-primary small border-0 shadow-sm mb-4">
+                        <i class="bi bi-info-circle-fill"></i> 当前小区在册业主共计 <strong>@ViewBag.TotalOwners</strong> 户。使用 SignalR 引擎，在线用户的手机将瞬间弹出震动通知。
+                    </div>
+
+                    <form method="post" action="/AdminOwner/MassMessage">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">群发投递目标</label>
+                            <select name="targetGroup" class="form-select border-primary text-dark fw-bold">
+                                <option value="All">全体在册业主 (@ViewBag.TotalOwners 户全量覆盖)</option>
+                            </select>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold text-muted small">通知标题</label>
+                                <input type="text" name="title" class="form-control" placeholder="如：国庆期间门禁升级通告" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-muted small">消息类型</label>
+                                <select name="msgType" class="form-select" required>
+                                    <option value="系统通知">社区通知</option>
+                                    <option value="温馨提示">温馨提示</option>
+                                    <option value="紧急告警">紧急警报</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small">通知正文 (直达手机端盒子)</label>
+                            <textarea name="content" class="form-control" rows="5" placeholder="尊敬的业主，为了进一步提升小区的安全..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onclick="return confirm('确定执行全区并发广播吗？');">
+                            立即执行全区广播推送
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

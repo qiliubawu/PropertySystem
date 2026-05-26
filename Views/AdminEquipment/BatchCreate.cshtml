@@ -1,0 +1,70 @@
+﻿@{
+    ViewData["Title"] = "智能分布设备";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm border-warning">
+                <div class="card-header bg-warning text-dark text-center py-3">
+                    <h4 class="mb-0 fw-bold">智能设备网格化部署台</h4>
+                </div>
+                <div class="card-body p-4 bg-light">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger fw-bold shadow-sm">@TempData["Error"]</div>
+                    }
+
+                    <div class="alert alert-info small shadow-sm border-info">
+                        <strong>分布逻辑说明：</strong> 系统会自动读取目标楼栋的真实楼层结构（包含地下层），并按照您设定的“每层数量”进行均分覆盖。
+                    </div>
+
+                    <form method="post" action="/AdminEquipment/BatchCreate">
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-primary">部署目标楼栋</label>
+                                <select name="buildingNo" class="form-select form-select-lg border-primary" required>
+                                    <option value="">-- 选择目标楼栋 --</option>
+                                    @foreach (var b in ViewBag.Buildings)
+                                    {
+                                        <option value="@b">第 @b 栋</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-primary">设备大类</label>
+                                <select name="category" class="form-select form-select-lg border-primary" required>
+                                    <option value="消防安防">消防安防 (监控/灭火器)</option>
+                                    <option value="公共设施">公共设施 (照明灯/垃圾桶)</option>
+                                    <option value="水电气暖">水电气暖 (电表箱/阀门)</option>
+                                    <option value="特种设备">特种设备</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold">统一设备名称</label>
+                                <input type="text" name="namePrefix" class="form-control form-control-lg" placeholder="如：楼道高清监控探头 / 干粉灭火器" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-danger">覆盖密度(每层几个)</label>
+                                <input type="number" name="countPerFloor" class="form-control form-control-lg border-danger text-center fw-bold" min="1" max="20" value="2" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-5 p-3 bg-white border rounded shadow-sm">
+                            <label class="form-label fw-bold text-success">统一下次维保/巡检期限设定</label>
+                            <input type="date" name="nextMaintenanceDate" class="form-control" value="@DateTime.Now.AddMonths(6).ToString("yyyy-MM-dd")" required />
+                            <small class="text-muted">到达此期限前，系统将自动在台账大屏中亮红灯预警。</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold text-dark shadow" onclick="return confirm('系统即将自动遍历楼层并生成大量数据，请确认参数无误！');">⚡ 立即执行全楼覆盖部署</button>
+                        <a href="/AdminEquipment/Index" class="btn btn-link w-100 mt-3 text-center text-muted text-decoration-none">取消并返回台账</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

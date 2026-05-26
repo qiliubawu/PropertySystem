@@ -1,0 +1,170 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.Bill>
+@{
+    ViewData["Title"] = "财务账单中心";
+}
+
+<div class="container-fluid mt-2">
+    <!-- 顶部控制栏 -->
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h5 class="fw-bold text-dark mb-0">财务收支管理大盘</h5>
+        <div>
+            <a href="/AdminFee/ExportExcel@(ViewBag.CurrentFilter)" class="btn btn-sm btn-outline-dark me-2">导出 Excel 报表</a>
+            <button type="button" class="btn btn-sm btn-primary me-2" data-bs-toggle="modal" data-bs-target="#batchModal">批量发账</button>
+            <a href="/AdminFee/Create" class="btn btn-sm btn-success">单条手工建账</a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success p-2 small fw-bold">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger p-2 small fw-bold">@TempData["Error"]</div>
+    }
+
+    <!-- 📊 财务看板大屏 (超级防报错版) -->
+    <div class="row mb-3 text-center">
+        <div class="col-md-3">
+            <div class="card bg-white border">
+                <div class="card-body p-3">
+                    <div class="text-muted small mb-1">本期应收总额</div>
+                    <!-- 使用 string.Format 彻底防止 ToString() 的空指针报错 -->
+                    <h3 class="text-dark fw-bold mb-0">¥ @string.Format("{0:N2}", ViewBag.FinanceExpected ?? 0)</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-white border">
+                <div class="card-body p-3">
+                    <div class="text-muted small mb-1">实际已收总额</div>
+                    <h3 class="text-success fw-bold mb-0">¥ @string.Format("{0:N2}", ViewBag.FinanceCollected ?? 0)</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-white border">
+                <div class="card-body p-3">
+                    <div class="text-muted small mb-1">未收欠费总额</div>
+                    <h3 class="text-danger fw-bold mb-0">¥ @string.Format("{0:N2}", ViewBag.TotalUnpaid ?? 0)</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-white border">
+                <div class="card-body p-3">
+                    <div class="text-muted small mb-1">当前收缴率</div>
+                    <h3 class="text-primary fw-bold mb-0">@(ViewBag.CollectionRate ?? "0.0") %</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 筛选栏 -->
+    <form method="get" class="d-flex gap-2 mb-3 bg-light p-3 border">
+        <input type="month" name="searchMonth" class="form-control w-25" value="@ViewBag.SearchMonth" />
+        <select name="searchType" class="form-select w-25">
+            <option value="">-- 全细分费用 --</option>
+            <option value="住宅物业费" selected="@(ViewBag.SearchType == "住宅物业费")">住宅物业费</option>
+            <option value="产权车位管理费" selected="@(ViewBag.SearchType == "产权车位管理费")">产权车位管理费</option>
+            <option value="租赁车位使用费" selected="@(ViewBag.SearchType == "租赁车位使用费")">租赁车位使用费</option>
+            <option value="公摊水电能耗费" selected="@(ViewBag.SearchType == "公摊水电能耗费")">公摊水电能耗费</option>
+            <option value="生活垃圾处理费" selected="@(ViewBag.SearchType == "生活垃圾处理费")">生活垃圾处理费</option>
+        </select>
+        <select name="searchStatus" class="form-select w-25">
+            <option value="">-- 所有状态 --</option>
+            <option value="未缴费" selected="@(ViewBag.SearchStatus == "未缴费")">未缴费 (欠费)</option>
+            <option value="已缴费" selected="@(ViewBag.SearchStatus == "已缴费")">已缴费 (入账)</option>
+        </select>
+        <button type="submit" class="btn btn-primary">精准筛选</button>
+        <a href="/AdminFee/Index" class="btn btn-light border text-muted">重置</a>
+    </form>
+
+    <!-- 账单明细表 -->
+    <table class="table table-bordered table-hover text-center align-middle bg-white">
+        <thead class="table-light"><tr><th>账期</th><th>业主/房号</th><th>费用类型</th><th>账单金额</th><th>状态</th><th>系统操作</th></tr></thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="@(item.LateFee > 0 && !item.IsPaid ? "table-danger" : "")">
+                    <td><strong class="text-dark">@item.BillingMonth</strong></td>
+                    <td class="text-start">
+                        <strong class="text-dark">@item.Owner.Name</strong><br />
+                        <span class="text-muted small">电话: @item.Owner.Phone</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">@item.FeeType</span>
+                    </td>
+                    <td>
+                        <span class="text-dark fw-bold fs-5">¥ @item.Amount.ToString("N2")</span>
+                        @if (item.LateFee > 0 && !item.IsPaid)
+                        {
+                            <div class="text-danger small mt-1 fw-bold" title="已逾期，按每日 3‰ 累加">
+                                含滞纳金: ¥@item.LateFee.ToString("N2")
+                            </div>
+                        }
+                    </td>
+                    <td>
+                        @if (item.IsPaid)
+                        {
+                            <span class="text-success">已入账</span>
+                        }
+                        else
+                        {
+
+                            <span class="text-danger">待缴费</span>
+                        }
+                    </td>
+                    <td>
+                        @if (!item.IsPaid)
+                        {
+                            <a href="/AdminFee/MarkAsPaid/@item.Id" class="btn btn-sm btn-outline-success fw-bold" onclick="return confirm('确认收到该笔款项并核销账单吗？');">收款</a>
+                        }
+                        else
+                        {
+                            <a target="_blank" href="/AdminFee/PrintReceipt/@item.Id" class="btn btn-sm btn-light border text-muted">打印收据</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_Pagination" model="Model" />
+</div>
+
+<!-- 批量发账模态框 (极简风) -->
+<div class="modal fade" id="batchModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-light border-bottom">
+                <h6 class="modal-title fw-bold text-dark">批量发账系统</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/AdminFee/BatchGenerate">
+                <div class="modal-body p-4 bg-white">
+                    <div class="alert alert-info py-2 small mb-3 border-info text-info bg-light">
+                        系统将遍历全小区所有业主，根据其绑定的资产自动执行计算公式。已存在同月同类账单的业主将被自动跳过。
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">选择账单月份</label>
+                        <input type="month" name="targetMonth" class="form-control" value="@DateTime.Now.ToString("yyyy-MM")" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">选择批量产生的费用类型</label>
+                        <select name="feeType" class="form-select border-primary text-primary fw-bold" required>
+                            <option value="住宅物业费">住宅物业费 (面积基数计算)</option>
+                            <option value="公摊水电能耗费">公摊水电能耗费 (面积基数计算)</option>
+                            <option value="生活垃圾处理费">生活垃圾处理费 (固定单户计算)</option>
+                            <option value="产权车位管理费">产权车位管理费 (车位类型鉴别)</option>
+                            <option value="租赁车位使用费">租赁车位使用费 (车位类型鉴别)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary fw-bold" onclick="return confirm('系统将进行全覆盖运算，确认执行吗？');">确认执行派发</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

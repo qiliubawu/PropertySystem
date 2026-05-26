@@ -1,0 +1,42 @@
+﻿@model PropertySystem.Models.RepairRequest
+@{
+    ViewData["Title"] = "提交报修";
+}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>替业主提交报修工单</h2><hr />
+            <!-- 必须加 enctype，否则无法上传图片 -->
+            <form method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label">选择报修业主</label>
+                    <select asp-for="OwnerId" class="form-select" required>
+                        <option value="">-- 请选择业主 --</option>
+                        @foreach (var o in ViewBag.Owners)
+                        {
+                            <option value="@o.Id">@o.Name (@o.RoomNo)</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">报修类型</label>
+                    <select asp-for="RepairType" class="form-select" required>
+                        <option value="水路管道">水路管道</option>
+                        <option value="电路电器">电路电器</option>
+                        <option value="门窗锁具">门窗锁具</option>
+                        <option value="公共设施">公共设施</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">故障描述</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">上传故障照片 (选填)</label>
+                    <input asp-for="BeforeImageFile" type="file" class="form-control" accept="image/*" />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">生成并发布工单</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,15 @@
+﻿@model PropertySystem.Models.User
+@{
+    Layout = "~/Views/Shared/_CleanerLayout.cshtml"; ViewData["Title"] = "我的工作证"; ViewData["ActiveTab"] = "My";
+}
+
+<div class="text-center bg-white p-5 rounded-3 shadow-sm mt-3">
+    <i class="bi bi-person-badge text-success" style="font-size: 6rem;"></i>
+    <h2 class="fw-bold mt-3">@Model.FullName</h2>
+    <span class="badge bg-success fs-5 px-4 py-2 mt-2 rounded-pill">物业保洁员</span>
+    <p class="text-muted mt-3">工号/账号：@Model.Username</p>
+</div>
+<button class="btn btn-outline-primary w-100 fw-bold bg-white py-3 shadow-sm mb-4" data-bs-toggle="modal" data-bs-target="#materialRequestModal">
+    <i class="bi bi-box-seam me-1"></i> 提交工作物资申请
+</button>
+<a href="/Account/Logout" class="btn btn-danger btn-lg w-100 py-3 mt-4 fw-bold rounded-pill shadow-sm">退出工作系统</a>

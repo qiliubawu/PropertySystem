@@ -1,0 +1,94 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.Announcement>
+@{
+    ViewData["Title"] = "公告信息流";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>社区公告发布大厅</h2>
+        <a href="/AdminAnnouncement/Create" class="btn btn-success fw-bold shadow-sm">撰写新图文公告</a>
+    </div>
+    <hr />
+
+    <form method="get" class="d-flex gap-2 mb-4 bg-light p-3 border rounded shadow-sm">
+        <input type="text" name="searchTitle" class="form-control w-25" placeholder="搜索标题关键字" value="@ViewBag.SearchTitle" />
+        <select name="searchType" class="form-select w-auto">
+            <option value="">-- 全部分类 --</option>
+            <option value="普通通知" selected="@(ViewBag.SearchType == "普通通知")">普通通知</option>
+            <option value="社区活动" selected="@(ViewBag.SearchType == "社区活动")">社区活动</option>
+            <option value="停水停电" selected="@(ViewBag.SearchType == "停水停电")">停水停电</option>
+            <option value="缴费提醒" selected="@(ViewBag.SearchType == "缴费提醒")">缴费提醒</option>
+        </select>
+        <button type="submit" class="btn btn-primary px-4">筛选</button>
+        <a href="/AdminAnnouncement/Index" class="btn btn-light border text-muted px-4">重置</a>
+
+    </form>
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0 @(item.IsTop ? "border-start border-danger border-5 bg-light" : "")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge @(item.Type == "停水停电" ? "bg-danger" : item.Type == "社区活动" ? "bg-success" : "bg-primary")">@item.Type</span>
+                            <small class="text-muted">@item.PublishTime.ToString("yyyy-MM-dd HH:mm")</small>
+
+                        </div>
+                        <h4 class="card-title fw-bold text-dark mb-3">
+                            @if (item.IsTop)
+                            {
+                                <span class="text-danger">[置顶] </span>
+                            }
+                            @item.Title
+                        </h4>
+
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <span class="text-muted small">发布人: @item.Publisher</span>
+                            <div>
+                                <!-- 将完整的 HTML 内容通过属性传给 JS -->
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="showPreview('@item.Title', `@Html.Raw(item.Content.Replace("`", "\\`").Replace("'", "\\'"))`)">👁️ 预览效果</button>
+                                <a href="/AdminAnnouncement/Edit/@item.Id" class="btn btn-sm btn-outline-secondary">编辑</a>
+                                <a href="/AdminAnnouncement/Delete/@item.Id" class="btn btn-sm btn-outline-danger" onclick="return confirm('删除后业主端将同步下线，确定吗？');">删除</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center text-muted p-5 fs-5">暂无发布的公告</div>
+        }
+    </div>
+    <partial name="_Pagination" model="Model" />
+</div>
+
+<!-- 手机端沉浸式预览弹窗 (Modal) -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" style="max-width: 400px;">
+        <!-- 模拟手机壳样式 -->
+        <div class="modal-content border-dark shadow-sm" style="border-width: 8px; border-radius: 20px;">
+            <div class="modal-header bg-dark text-white text-center d-block position-relative pb-4">
+                <!-- 模拟手机刘海 -->
+                <div style="width: 100px; height: 15px; background: black; border-radius: 0 0 10px 10px; position: absolute; top: -8px; left: 50%; transform: translateX(-50%);"></div>
+                <h5 class="modal-title mt-2 fw-bold" id="previewTitle" style="font-size: 1.1rem;"></h5>
+            </div>
+            <!-- 内容区：使用 Html.Raw 渲染富文本 -->
+            <div class="modal-body bg-light p-4" id="previewContent" style="min-height: 500px; font-family: sans-serif;">
+            </div>
+            <div class="modal-footer d-flex justify-content-center bg-white border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-5" data-bs-dismiss="modal">关闭预览</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showPreview(title, htmlContent) {
+        document.getElementById('previewTitle').innerText = title;
+        // 把富文本 HTML 塞进手机屏幕里
+        document.getElementById('previewContent').innerHTML = htmlContent;
+        new bootstrap.Modal(document.getElementById('previewModal')).show();
+    }
+</script>

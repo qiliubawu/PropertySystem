@@ -1,0 +1,150 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.Visitor>
+@{
+    ViewData["Title"] = "访客出入管理";
+}
+
+<div class="container-fluid mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h4 class="fw-bold text-dark mb-0">访客与车辆通行管理</h4>
+        <!-- 弹窗触发按钮 -->
+        <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#qrCodeModal" onclick="initQRDomain()">
+            生成公网自助登记二维码
+        </button>
+    </div>
+
+    <table class="table table-bordered table-hover text-center align-middle bg-white">
+        <thead class="table-light">
+            <tr>
+                <th width="15%">访客身份</th>
+                <th width="15%">交通工具</th>
+                <th width="10%">目的</th>
+                <th width="20%">申请有效通行时段</th>
+                <th width="20%">当前动态状态</th>
+                <th width="20%">系统管控</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                string rowClass = item.DynamicStatus.Contains("访问中") ? "table-warning" :
+                item.DynamicStatus.Contains("未生效") ? "table-info" : "";
+                <tr class="@rowClass">
+                    <td class="text-start ps-3">
+                        <strong class="fs-5 text-primary">@item.Name</strong><br />
+                        <span class="text-muted small">@item.Gender, @item.Age 岁 | 电话: @item.Phone</span>
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.CarPlate))
+                        {
+                            <span class="badge bg-success fs-6 border"><i class="bi bi-car-front"></i> @item.CarPlate</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">步行入园</span>
+                        }
+                    </td>
+                    <td><span class="badge bg-light text-dark border">@item.Purpose</span></td>
+                    <td class="small text-muted">
+                        起：<strong class="text-success">@item.StartTime.ToString("MM-dd HH:mm")</strong><br />
+                        止：<strong class="text-danger">@item.EndTime.ToString("MM-dd HH:mm")</strong>
+                    </td>
+                    <td>
+                        @if (item.DynamicStatus.Contains("访问中"))
+                        {
+                            <span class="badge bg-danger fs-6">🚨 @item.DynamicStatus</span>
+                        }
+                        else if (item.DynamicStatus.Contains("未生效"))
+                        {
+                            <span class="badge bg-info text-dark">⏳ @item.DynamicStatus</span>
+                        }
+                        else if (item.DynamicStatus.Contains("已过期"))
+                        {
+                            <span class="badge bg-secondary">⬛ @item.DynamicStatus</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">✅ @item.DynamicStatus<br /><small class="fw-normal">(@(item.LeaveTime?.ToString("HH:mm")))</small></span>
+                        }
+                    </td>
+                    <td>
+                        @if (!item.DynamicStatus.Contains("已人工") && !item.DynamicStatus.Contains("已过期"))
+                        {
+                            <a href="/AdminVisitor/MarkLeave/@item.Id" class="btn btn-sm btn-dark fw-bold" onclick="return confirm('确认该访客/车辆已离开，并吊销其通行权限吗？');">
+                                强制签出 / 吊销
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-light border text-muted" disabled>权限已核销</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_Pagination" model="Model" />
+</div>
+
+<!-- 🌐 升级版：支持公网穿透的二维码弹窗 -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-light border-bottom">
+                <h6 class="modal-title fw-bold text-dark">访客自助登记 (公网版)</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+
+                <div class="alert alert-info small text-start mb-4">
+                    若您使用了 Cpolar/内网穿透 工具，请确保下方输入框内是您的<b>公网域名</b> (如 https://xxxx.cpolar.cn)，否则外人手机无法扫码！
+                </div>
+
+                <div class="input-group mb-3">
+                    <span class="input-group-text bg-white">系统根域名</span>
+                    <input type="text" id="domainInput" class="form-control fw-bold text-primary" placeholder="例如: https://xxx.cpolar.cn" onkeyup="generateQR()">
+                </div>
+
+                <!-- 存放二维码的容器 -->
+                <div id="qrcode" class="d-flex justify-content-center p-3 bg-white border rounded"></div>
+                <p class="mt-3 small text-muted font-monospace" id="qr-url-text"></p>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 引入生成二维码的 JS 库 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    // 弹窗打开时，自动获取当前域名填充，并生成第一次二维码
+    function initQRDomain() {
+        var defaultDomain = window.location.protocol + "//" + window.location.host;
+        document.getElementById("domainInput").value = defaultDomain;
+        generateQR();
+    }
+
+    // 根据输入框里的公网域名，实时生成二维码
+    function generateQR() {
+        var domain = document.getElementById("domainInput").value;
+        // 去除末尾可能带的斜杠
+        if(domain.endsWith('/')) { domain = domain.slice(0, -1); }
+
+        var registerUrl = domain + "/Visitor/Register";
+
+        // 显示地址文本供管理员核对
+        document.getElementById("qr-url-text").innerText = "解析地址: " + registerUrl;
+
+        // 清空旧二维码并生成新的
+        document.getElementById("qrcode").innerHTML = "";
+        if (domain.trim() !== "") {
+            new QRCode(document.getElementById("qrcode"), {
+                text: registerUrl,
+                width: 220,
+                height: 220,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+    }
+</script>

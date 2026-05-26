@@ -1,0 +1,42 @@
+﻿@model IEnumerable<PropertySystem.Models.RepairRequest>
+@{
+    Layout = "~/Views/Shared/_MaintenanceLayout.cshtml"; ViewData["Title"] = "抢单公海"; ViewData["ActiveTab"] = "Grab";
+}
+
+<!-- 模拟雷达扫描动画 -->
+<div class="bg-white p-3 rounded-pill shadow-sm text-center mb-4 text-warning fw-bold border border-warning">
+    <span class="spinner-grow spinner-grow-sm me-2 text-warning"></span> 正在实时监听附近的新工单...
+</div>
+
+@foreach (var item in Model)
+{   
+    // 算法：距离现在超过 30 分钟没人接单，视为 SLA 超时预警
+    bool isTimeout = (DateTime.Now - item.CreateTime).TotalMinutes > 30;
+    string borderClass = isTimeout ? "border-danger bg-danger text-white" : "border-warning";
+    string textClass = isTimeout ? "text-white" : "text-dark";
+    <div class="card shadow-sm border-0 mb-3 border-start border-danger border-5" style="border-radius:15px;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="fw-bold fs-5 @textClass">@item.RepairType</span>
+                <span class="text-danger fw-bold small">距您 50米 (模拟)</span>
+            </div>
+            <p class="@textClass small mb-2 text-truncate">@item.Description</p>
+            <div class="bg-light p-2 rounded small @textClass mb-3">
+                <i class="bi bi-geo-alt-fill text-danger"></i> @item.Owner?.RoomNo
+            </div>
+
+            <a href="/Maintenance/GrabOrder/@item.Id" class="btn btn-warning w-100 fw-bold text-dark fs-5 py-2 shadow" style="border-radius:50px;">
+                立即抢单
+            </a>
+        </div>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="text-center text-muted p-5 mt-5">
+        <i class="bi bi-cup-hot text-secondary opacity-50" style="font-size: 5rem;"></i>
+        <h5 class="mt-3 fw-bold">暂时没有待接的新单子</h5>
+        <p class="small">喝杯茶休息一下吧</p>
+    </div>
+}

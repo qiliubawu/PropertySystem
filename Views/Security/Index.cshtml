@@ -1,0 +1,127 @@
+﻿@{
+    Layout = "~/Views/Shared/_SecurityLayout.cshtml"; ViewData["Title"] = "安全巡防大队"; ViewData["ActiveTab"] = "Task";
+}
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-primary fw-bold text-center fs-6 shadow-sm">@TempData["Msg"]</div>
+}
+@if (TempData["ErrorMsg"] != null)
+{
+    <div class="alert alert-danger fw-bold text-center fs-6 shadow-sm border-danger">@TempData["ErrorMsg"]</div>
+}
+
+<!-- 模拟 NFC / 扫码仪 -->
+<div class="bg-white p-3 rounded shadow-sm text-center mb-4 border" style="border-top: 4px solid #3498db;">
+    <i class="bi bi-radar text-primary" style="font-size: 3rem;"></i>
+    <h5 class="fw-bold mt-2 text-dark">靠近巡更点扫描仪</h5>
+    <p class="text-muted small mb-0">系统已强制开启 [现场实景快照水印] 验证</p>
+</div>
+
+<!-- 🌟 使用 Bootstrap 手风琴展示三个时段 -->
+<div class="accordion shadow-sm" id="periodAccordion" style="border-radius: 12px; overflow: hidden;">
+    @{
+        int index = 0;
+    }
+    @foreach (var group in ViewBag.GroupedTasks)
+    {
+        // 计算这个时段完成了几个，总共几个
+        int total = ((IEnumerable<dynamic>)group).Count();
+        int done = ((IEnumerable<dynamic>)group).Count(t => t.Status != "待打卡");
+
+        <div class="accordion-item border-0 border-bottom">
+            <h2 class="accordion-header">
+                <button class="accordion-button @(index != 0 ? "collapsed" : "") bg-light text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_@index">
+                    <i class="bi bi-clock-history text-primary me-2 fs-5"></i>
+                    @group.Key
+                    <span class="badge bg-@(done == total ? "success" : "secondary") ms-auto rounded-pill">完成 @done / @total</span>
+                </button>
+            </h2>
+            <div id="collapse_@index" class="accordion-collapse collapse @(index == 0 ? "show" : "")" data-bs-parent="#periodAccordion">
+                <div class="accordion-body bg-white p-2">
+                    @foreach (var item in group)
+                    {
+                        <div class="card shadow-sm border-0 mb-2 border-start border-4 border-@(item.Status == "待打卡" ? "secondary" : item.Status == "正常完成" ? "success" : "danger")">
+                            <div class="card-body py-2">
+                                <h6 class="fw-bold text-dark mb-2">@item.Location</h6>
+                                @if (item.Status == "待打卡")
+                                {
+                                    <button class="btn btn-outline-primary btn-sm w-100 fw-bold" onclick="openScanModal(@item.Id, '@item.Location', '@group.Key')">
+                                        <i class="bi bi-geo-alt"></i> 到达点位，执行打卡
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="d-flex justify-content-between text-muted" style="font-size:0.8rem;">
+                                        <span class="text-@(item.Status == "正常完成" ? "success" : "danger") fw-bold">@item.Status</span>
+                                        <span><i class="bi bi-check-all"></i> @item.ScanTime?.ToString("HH:mm") 查验完毕</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(item.AbnormalNotes))
+                                    {
+                                        <div class="text-danger small mt-1">隐患: @item.AbnormalNotes</div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        index++;
+    }
+</div>
+
+<!-- 📸 强制拍照的打卡弹窗 -->
+<div class="modal fade" id="scanModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="align-items:flex-end; margin:0; height:100%;">
+        <div class="modal-content border-0" style="border-radius:20px 20px 0 0;">
+            <div class="modal-header bg-dark text-white border-0">
+                <h6 class="modal-title fw-bold">巡查情况确认上传</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <!-- 必须有 enctype="multipart/form-data" 才能传图 -->
+            <form method="post" action="/Security/SubmitScan" enctype="multipart/form-data" class="modal-body bg-light">
+                <input type="hidden" name="Id" id="taskId" />
+
+                <div class="bg-white p-3 rounded text-center border mb-3 shadow-sm">
+                    <div class="badge bg-secondary mb-2" id="taskPeriod"></div>
+                    <h5 class="text-primary fw-bold mb-0" id="taskLoc">--</h5>
+                </div>
+
+                <!-- 核心强制拍照区 -->
+                <div class="p-3 bg-white rounded border mb-4 shadow-sm">
+                    <h6 class="text-dark fw-bold"><i class="bi bi-camera text-primary fs-5"></i> 现场照片采集 <span class="text-danger">*必填</span></h6>
+                    <p class="text-muted small mb-2">系统将校验照片包含的时间与 GPS 防伪水印</p>
+                    <input type="file" name="ImageFile" class="form-control form-control-lg border-primary" accept="image/*" capture="camera" required />
+
+                    <textarea name="AbnormalNotes" class="form-control mt-3 bg-light border-0" rows="2" placeholder="备注或隐患描述 (选填)"></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" name="scanResult" value="安全" class="btn btn-success btn-lg w-100 fw-bold shadow-sm py-3"><i class="bi bi-shield-check"></i> 安全签到</button>
+                    <button type="submit" name="scanResult" value="隐患" class="btn btn-danger btn-lg w-100 fw-bold shadow-sm py-3" onclick="return confirm('确认周边存在安全隐患并上报吗？');"><i class="bi bi-exclamation-triangle"></i> 隐患报警</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function openScanModal(id, loc, period) {
+        document.getElementById('taskId').value = id;
+        document.getElementById('taskLoc').innerText = loc;
+        document.getElementById('taskPeriod').innerText = period;
+        new bootstrap.Modal(document.getElementById('scanModal')).show();
+    }
+</script>
+<style>
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out;
+        transform: translateY(100%);
+    }
+
+    .modal.show .modal-dialog {
+        transform: translateY(0);
+    }
+</style>

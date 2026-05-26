@@ -1,0 +1,24 @@
+﻿@model PropertySystem.Models.House
+@{
+    ViewData["Title"] = "修改房屋参数";
+}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>✏️ 修改房屋参数：@Model.BuildingNo 栋 @Model.RoomNo</h2><hr />
+            <form method="post" action="/AdminSmartHouse/Edit/@Model.Id">
+                <input type="hidden" asp-for="Id" />
+                <div class="row">
+                    <div class="col-6 mb-3"><label>楼栋号</label><input asp-for="BuildingNo" class="form-control" type="number" /></div>
+                    <div class="col-6 mb-3"><label>单元号</label><input asp-for="UnitNo" class="form-control" /></div>
+                    <div class="col-6 mb-3"><label>楼层</label><input asp-for="Floor" class="form-control" /></div>
+                    <div class="col-6 mb-3"><label>房间号</label><input asp-for="RoomNo" class="form-control" /></div>
+                    <div class="col-6 mb-3"><label class="text-danger fw-bold">面积(影响物业费)</label><input asp-for="Area" class="form-control border-danger" /></div>
+                    <div class="col-6 mb-3"><label>户型</label><input asp-for="Layout" class="form-control" /></div>
+                </div>
+                <button type="submit" class="btn btn-success w-100 mt-3">提交修改</button>
+                <button type="button" class="btn btn-secondary w-100 mt-2" onclick="history.back()">返回</button>
+            </form>
+        </div>
+    </div>
+</div>

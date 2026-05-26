@@ -1,0 +1,15 @@
+﻿@model PropertySystem.Models.User
+@{
+    Layout = "~/Views/Shared/_FireSafetyLayout.cshtml"; ViewData["Title"] = "执法证件"; ViewData["ActiveTab"] = "My";
+}
+
+<div class="text-center bg-white p-5 rounded-3 shadow-sm mt-4 border border-danger">
+    <i class="bi bi-fire text-danger" style="font-size: 6rem;"></i>
+    <h2 class="fw-bold mt-3 text-dark">@Model.FullName</h2>
+    <span class="badge bg-danger fs-5 px-4 py-2 mt-2 rounded-pill shadow-sm">一级消防安全员</span>
+    <p class="text-muted mt-3 fw-bold">系统编号：@Model.Username</p>
+</div>
+<button class="btn btn-outline-primary w-100 fw-bold bg-white py-3 shadow-sm mb-4" data-bs-toggle="modal" data-bs-target="#materialRequestModal">
+    <i class="bi bi-box-seam me-1"></i> 提交工作物资申请
+</button>
+<a href="/Account/Logout" class="btn btn-dark btn-lg w-100 py-3 mt-5 fw-bold rounded-pill shadow">下岗退出系统</a>

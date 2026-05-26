@@ -1,0 +1,28 @@
+﻿@model PropertySystem.Models.Owner
+@{
+    Layout = "~/Views/Shared/_OwnerLayout.cshtml"; ViewData["Title"] = "修改个人资料";
+}
+<div class="mb-3"><a href="/Owner/Profile" class="btn btn-sm btn-light border text-muted"><i class="bi bi-chevron-left"></i> 取消返回</a></div>
+<div class="card border-0 mb-5 pb-5">
+    <div class="card-body p-3">
+        @if (TempData["ProfileSuccess"] != null && TempData["ProfileSuccess"].ToString().Contains("❌"))
+        {
+            <div class="alert alert-danger py-2 small mb-3">@TempData["ProfileSuccess"]</div>
+        }
+        <form method="post" action="/Owner/EditProfile">
+            <input type="hidden" asp-for="Id" /><input type="hidden" asp-for="Phone" />
+            <div class="alert alert-light border border-info py-2 small mb-3 text-info"><i class="bi bi-info-circle-fill"></i> 手机号无法自助修改，如需变更请联系物业。</div>
+            <div class="mb-3"><label class="text-muted small fw-bold">姓名</label><input asp-for="Name" class="form-control" required /></div>
+            <div class="row mb-3">
+                <div class="col-6"><label class="text-muted small fw-bold">性别</label><select asp-for="Gender" class="form-select"><option value="男">男</option><option value="女">女</option></select></div>
+                <div class="col-6"><label class="text-muted small fw-bold">年龄</label><input asp-for="Age" class="form-control" type="number" required /></div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-6"><label class="text-success small fw-bold">车牌号(选填)</label><input asp-for="CarPlate" class="form-control border-success" placeholder="如: 京A88888" /></div>
+                <div class="col-6"><label class="text-muted small fw-bold">电子邮箱(选填)</label><input asp-for="Email" class="form-control" type="email" /></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm" style="border-radius: 8px;">保存更新</button>
+        </form>
+    </div>
+</div>

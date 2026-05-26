@@ -1,0 +1,141 @@
+﻿@model PropertySystem.Models.Owner
+@{
+    ViewData["Title"] = "分配资产";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>分配资产给业主：<span class="text-primary">@Model.Name</span></h2>
+        <a href="/AdminOwner/Index" class="btn btn-outline-secondary">返回业主列表</a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger fw-bold shadow-sm">@TempData["Error"]</div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold shadow-sm">@TempData["Success"]</div>
+    }
+
+    <div class="alert alert-info">
+        联系电话：@Model.Phone &nbsp;&nbsp;|&nbsp;&nbsp; 规则：1套房产最多可绑定 2 个车位。
+    </div>
+    <hr />
+
+    <div class="row">
+        <!-- ================= 左侧：房屋绑定区 ================= -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white"><h5 class="mb-0">房产管理</h5></div>
+                <div class="card-body">
+                    <form method="post" action="/AdminOwner/BindHouse" class="mb-4">
+                        <input type="hidden" name="ownerId" value="@Model.Id" />
+                        <label class="form-label fw-bold text-primary">检索并分配空闲房屋：</label>
+                        <input type="text" id="houseSearchInput" class="form-control border-primary mb-2" placeholder="输入楼栋、单元或房间号过滤..." onkeyup="filterHouses()">
+                        <div class="input-group">
+                            <select name="houseId" id="houseSelect" class="form-select border-primary" required size="5" style="max-height: 150px;">
+                                @foreach (var group in ((IEnumerable<PropertySystem.Models.House>)ViewBag.AvailableHouses).GroupBy(h => h.BuildingNo).OrderBy(g => g.Key))
+                                {
+                                    <optgroup label="第 @group.Key 栋">
+                                        @foreach (var h in group)
+                                        {
+                                            <option value="@h.Id">@h.BuildingNo 栋 @h.UnitNo 单元 @h.RoomNo</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-2 fw-bold shadow-sm">确认分配此房产</button>
+                    </form>
+
+                    <h6 class="fw-bold text-success">名下已有房产：</h6>
+                    <ul class="list-group">
+                        @if (((IEnumerable<dynamic>)ViewBag.BoundHouses).Any())
+                        {
+                            @foreach (var h in ViewBag.BoundHouses)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>@h.BuildingNo 栋 @h.UnitNo 单元 @h.RoomNo</span>
+                                    <form method="post" action="/AdminOwner/UnbindAsset">
+                                        <input type="hidden" name="ownerId" value="@Model.Id" />
+                                        <input type="hidden" name="houseId" value="@h.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定解绑此房屋吗？');">解绑</button>
+                                    </form>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="list-group-item text-muted">暂无绑定的房产</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 右侧：车位绑定区 ================= -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-success">
+                <div class="card-header bg-success text-white"><h5 class="mb-0">车位管理</h5></div>
+                <div class="card-body">
+                    <form method="post" action="/AdminOwner/BindParking" class="mb-4">
+                        <input type="hidden" name="ownerId" value="@Model.Id" />
+                        <label class="form-label fw-bold">分配空闲车位：</label>
+                        <div class="input-group">
+                            <select name="parkingId" class="form-select border-success" required>
+                                <option value="">-- 请选择空闲车位 --</option>
+                                @foreach (var p in ViewBag.AvailableParkings)
+                                {
+                                    <option value="@p.Id">@p.ParkingNo (@p.Location)</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-success fw-bold">确认分配</button>
+                        </div>
+                    </form>
+
+                    <h6 class="fw-bold text-success">名下已有车位：</h6>
+                    <ul class="list-group">
+                        @if (((IEnumerable<dynamic>)ViewBag.BoundParkings).Any())
+                        {
+                            @foreach (var p in ViewBag.BoundParkings)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>编号: @p.ParkingNo</span>
+                                    <form method="post" action="/AdminOwner/UnbindAsset">
+                                        <input type="hidden" name="ownerId" value="@Model.Id" />
+                                        <input type="hidden" name="parkingId" value="@p.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('确定收回该车位吗？');">收回</button>
+                                    </form>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="list-group-item text-muted">暂无绑定的车位</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterHouses() {
+            var input, filter, select, optgroups, options, i, j, txtValue;
+            input = document.getElementById("houseSearchInput"); filter = input.value.toUpperCase();
+            select = document.getElementById("houseSelect"); optgroups = select.getElementsByTagName("optgroup");
+            for (i = 0; i < optgroups.length; i++) {
+                var groupHasVisibleOptions = false; options = optgroups[i].getElementsByTagName("option");
+                for (j = 0; j < options.length; j++) {
+                    txtValue = options[j].textContent || options[j].innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) { options[j].style.display = ""; groupHasVisibleOptions = true; }
+                    else { options[j].style.display = "none"; }
+                }
+                optgroups[i].style.display = groupHasVisibleOptions ? "" : "none";
+            }
+        }
+    </script>
+}

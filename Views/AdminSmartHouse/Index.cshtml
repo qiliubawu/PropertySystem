@@ -1,0 +1,70 @@
+﻿@{
+    ViewData["Title"] = "智能楼宇沙盘";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>小区智能楼宇沙盘</h2>
+        <div>
+            <a href="/AdminSmartHouse/RoomList" class="btn btn-outline-secondary me-2">切换至传统列表视图</a>
+            <a href="/AdminSmartHouse/BatchCreate" class="btn btn-warning fw-bold text-dark">一键批量建楼</a>
+        </div>
+    </div>
+
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="row">
+        @foreach (var stat in ViewBag.BuildingStats)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card shadow-sm border-primary text-center hover-card">
+                    <div class="card-header bg-primary text-white fw-bold fs-5">
+                        第 @stat.BuildingNo 栋
+                    </div>
+                    <div class="card-body">
+                        <h1 class="display-4 text-primary">@stat.TotalRooms<span class="fs-6 text-muted">户</span></h1>
+                        <div class="d-flex justify-content-around mt-3">
+                            <div class="text-success fw-bold">空置: @stat.VacantRooms</div>
+                            <div class="text-secondary fw-bold">已入住: @stat.OccupiedRooms</div>
+                        </div>
+                        <hr />
+                        <a href="/AdminSmartHouse/VisualBoard?buildingNo=@stat.BuildingNo" class="btn btn-outline-primary w-100 mb-2 fw-bold">销控矩阵</a>
+
+                        <!-- 💣 爆破按钮 (只对整栋全空的楼显示红字，有人的楼显示灰字提示) -->
+                        <form method="post" action="/AdminSmartHouse/DeleteBuilding" class="d-inline" onsubmit="return confirm('警告：确定要拆除第 @stat.BuildingNo 栋大楼吗？所有相关房屋数据将瞬间消失！');">
+                            <input type="hidden" name="buildingNo" value="@stat.BuildingNo" />
+                            @if (stat.OccupiedRooms > 0)
+                            {
+                                <button type="submit" class="btn btn-secondary w-100 text-light" style="opacity: 0.6;" title="有业主入住，点击将触发安全拦截">无法拆除 (已有业主)</button>
+                            }
+                            else
+                            {
+                                <button type="submit" class="btn btn-outline-danger w-100 fw-bold">爆破拆除整栋楼</button>
+                            }
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        }
+        @if (((IEnumerable<dynamic>)ViewBag.BuildingStats).Count() == 0)
+        {
+            <div class="col-12 text-center text-muted p-5">小区目前是一片空地，请点击右上角开始建楼！</div>
+        }
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+</style>

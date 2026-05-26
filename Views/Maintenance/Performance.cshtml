@@ -1,0 +1,59 @@
+﻿@model IEnumerable<PropertySystem.Models.RepairRequest>
+@{
+    Layout = "~/Views/Shared/_MaintenanceLayout.cshtml"; ViewData["Title"] = "本月业绩"; ViewData["ActiveTab"] = "Perf";
+}
+
+<div class="text-center bg-white p-4 rounded-3 shadow-sm mt-3 mb-4">
+    <div class="bg-primary text-white rounded-circle d-inline-flex justify-content-center align-items-center fw-bold fs-1 mb-2" style="width: 70px; height: 70px;">
+        @ViewBag.WorkerName?.Substring(0, 1)
+    </div>
+    <h4 class="fw-bold mb-0">@ViewBag.WorkerName 师傅</h4>
+    <span class="text-muted small">系统金牌维修工程师</span>
+</div>
+
+<div class="row text-center px-2 mb-4">
+    <div class="col-4 px-1">
+        <div class="card bg-light border-0 shadow-sm">
+            <div class="card-body p-2">
+                <small class="text-muted d-block mb-1">本月单量</small><h4 class="fw-bold text-dark mb-0">@ViewBag.TotalOrders</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-4 px-1">
+        <div class="card bg-warning border-0 shadow-sm">
+            <div class="card-body p-2">
+                <small class="text-dark d-block mb-1">好评率</small><h4 class="fw-bold text-dark mb-0">@ViewBag.GoodRate</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-4 px-1">
+        <div class="card border-0 shadow-sm" style="background:#ff7675;">
+            <div class="card-body p-2 text-white">
+                <small class="d-block mb-1 opacity-75">超时率</small><h4 class="fw-bold mb-0">@ViewBag.TimeoutRate</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h6 class="fw-bold text-secondary mb-3 ms-1">本月客户评价墙</h6>
+@foreach (var item in Model)
+{
+    <div class="card border-0 bg-white mb-2 shadow-sm">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-warning fs-6">@Html.Raw(new String('⭐', item.Rating ?? 0))</span>
+                <small class="text-muted">@item.ConfirmTime?.ToString("MM-dd")</small>
+            </div>
+            <p class="mb-0 text-dark small fw-bold">" @item.Evaluation "</p>
+        </div>
+    </div>
+}
+<button class="btn btn-outline-primary w-100 fw-bold bg-white py-3 shadow-sm mb-4" data-bs-toggle="modal" data-bs-target="#materialRequestModal">
+    <i class="bi bi-box-seam me-1"></i> 提交工作物资申请
+</button>
+@if (!Model.Any())
+{
+    <div class="text-center text-muted p-4 small">暂无业主评价数据，继续努力抢单吧！</div>
+}
+
+<a href="/Account/Logout" class="btn btn-outline-danger w-100 mt-4 rounded-pill bg-white shadow-sm fw-bold">下班退出系统</a>

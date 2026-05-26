@@ -1,0 +1,30 @@
+﻿@model PropertySystem.Models.Owner
+@{
+    ViewData["Title"] = "编辑业主档案";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>✏️ 修改业主档案</h2><hr />
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger fw-bold shadow-sm">@TempData["Error"]</div>
+            }
+            <form method="post" action="/AdminOwner/Edit/@Model.Id">
+                <input type="hidden" asp-for="Id" /><input type="hidden" asp-for="UserId" />
+                <div class="mb-3"><label class="form-label text-muted small fw-bold">真实姓名</label><input asp-for="Name" class="form-control" required /></div>
+                <div class="row">
+                    <div class="col-6 mb-3"><label class="form-label text-muted small fw-bold">性别</label><select asp-for="Gender" class="form-select"><option value="男">男</option><option value="女">女</option></select></div>
+                    <div class="col-6 mb-3"><label class="form-label text-muted small fw-bold">年龄</label><input asp-for="Age" class="form-control" type="number" required /></div>
+                </div>
+                <div class="mb-3"><label class="form-label text-muted small fw-bold">手机号 (登录账号)</label><input asp-for="Phone" class="form-control" required /></div>
+                <div class="mb-3"><label class="form-label text-muted small fw-bold">电子邮箱 (选填)</label><input asp-for="Email" class="form-control" /></div>
+                <div class="mb-4"><label class="form-label text-success fw-bold">车牌号码 (选填)</label><input asp-for="CarPlate" class="form-control border-success" /></div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100 fw-bold shadow-sm">保存修改</button>
+                <a href="/AdminOwner/Index" class="btn btn-link w-100 mt-2 text-center text-muted text-decoration-none">返回列表</a>
+            </form>
+        </div>
+    </div>
+</div>

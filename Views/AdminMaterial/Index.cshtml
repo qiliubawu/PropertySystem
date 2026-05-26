@@ -1,0 +1,54 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.Material>
+@{
+    ViewData["Title"] = "物资仓储管理";
+}
+
+<div class="container-fluid mt-4 px-4">
+    <!-- 顶层服务中心大菜单 -->
+    <ul class="nav nav-tabs fs-6 fw-bold mb-4">
+        <li class="nav-item"><a class="nav-link active text-primary" href="/AdminMaterial/Index"><i class="bi bi-box-seam"></i> 现有库存清单</a></li>
+        <li class="nav-item"><a class="nav-link text-muted" href="/AdminMaterial/Requests"><i class="bi bi-clipboard-check"></i> 员工申报审批</a></li>
+    </ul>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold shadow-sm">@TempData["Success"]</div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover text-center align-middle mb-0">
+                <thead class="table-light"><tr><th>物料编码 (SKU)</th><th>物资名称</th><th>成本单价</th><th>当前库存剩余</th><th>快捷入库 (采购补货)</th></tr></thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-secondary">@item.SKU</td>
+                            <td class="fw-bold text-dark fs-5">@item.Name</td>
+                            <td class="text-dark fw-bold">¥ @item.UnitPrice.ToString("N2") / @item.Unit</td>
+                            <td>
+                                @if (item.Stock < 10)
+                                {
+                                    <span class="badge bg-danger fs-6 heartbeat">仅剩 @item.Stock @item.Unit</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-success fs-6">@item.Stock @item.Unit</span>
+                                }
+                            </td>
+                            <td>
+                                <form method="post" action="/AdminMaterial/AddStock" class="d-flex justify-content-center">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <input type="number" name="addCount" class="form-control form-control-sm w-25 me-2 text-center border-primary" min="1" placeholder="数量" required />
+                                    <button type="submit" class="btn btn-sm btn-primary fw-bold">确认入库</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <partial name="_Pagination" model="Model" />
+</div>

@@ -1,0 +1,153 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.RepairRequest>
+@{
+    ViewData["Title"] = "报修调度中心";
+}
+
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- 顶层服务中心大菜单 -->
+        <ul class="nav nav-tabs fs-5 fw-bold mb-4">
+            <li class="nav-item"><a class="nav-link active text-primary" href="/AdminRepair/Index"><i class="bi bi-tools"></i> 报修调度</a></li>
+            <li class="nav-item"><a class="nav-link text-muted" href="/AdminRepair/Complaints"><i class="bi bi-chat-right-dots"></i> 投诉建议信箱</a></li>
+        </ul>
+
+        <h2>报修工单调度指挥中心</h2>
+        <a href="/AdminRepair/Create" class="btn btn-primary fw-bold">代业主发起工单</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold">@TempData["Success"]</div>
+    }
+
+    <!-- 📊 工单漏斗看板 -->
+    <!-- 📊 B端标准数据看板 -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card border-0 border-start border-danger border-3 shadow-sm h-100">
+                <div class="card-body py-2">
+                    <div class="text-muted small">待接单派发</div>
+                    <h3 class="fw-bold text-dark mb-0">@ViewBag.PendingCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 border-start border-warning border-3 shadow-sm h-100">
+                <div class="card-body py-2">
+                    <div class="text-muted small">维修处理中</div>
+                    <h3 class="fw-bold text-dark mb-0">@ViewBag.ProcessingCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 border-start border-info border-3 shadow-sm h-100">
+                <div class="card-body py-2">
+                    <div class="text-muted small">待业主确认</div>
+                    <h3 class="fw-bold text-dark mb-0">@ViewBag.ConfirmCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 border-start border-success border-3 shadow-sm h-100">
+                <div class="card-body py-2">
+                    <div class="text-muted small">已完结归档</div>
+                    <h3 class="fw-bold text-dark mb-0">@ViewBag.CompletedCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 border-start border-primary border-3 shadow-sm h-100">
+                <div class="card-body py-2">
+                    <div class="text-muted small">平均好评度</div>
+                    <h3 class="fw-bold text-dark mb-0">@ViewBag.AvgRating <span class="fs-6 fw-normal">星</span></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 筛选区 -->
+    <form method="get" class="d-flex gap-2 mb-4 bg-light p-2 border rounded">
+        <select name="searchStatus" class="form-select w-auto">
+            <option value="">-- 全生命周期状态 --</option>
+            <option value="待接单" selected="@(ViewBag.SearchStatus == "待接单")">待接单</option>
+            <option value="维修中" selected="@(ViewBag.SearchStatus == "维修中")">维修中</option>
+            <option value="待确认" selected="@(ViewBag.SearchStatus == "待确认")">待确认</option>
+            <option value="已完成" selected="@(ViewBag.SearchStatus == "已完成")">已完成</option>
+        </select>
+        <select name="searchType" class="form-select w-auto">
+            <option value="">-- 所有报修类型 --</option>
+            <option value="水路管道" selected="@(ViewBag.SearchType == "水路管道")">水路管道</option>
+            <option value="电路电器" selected="@(ViewBag.SearchType == "电路电器")">电路电器</option>
+            <option value="公共设施" selected="@(ViewBag.SearchType == "公共设施")">公共设施</option>
+        </select>
+        <button type="submit" class="btn btn-secondary">过滤工单</button>
+        <a href="/AdminRepair/Index" class="btn btn-light border">清空</a>
+    </form>
+
+    <!-- 工单卡片瀑布流 -->
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card shadow-sm h-100 border-top-0 border-end-0 border-bottom-0 border-5 border-@(item.Status == "待接单" ? "danger" : item.Status == "维修中" ? "warning" : item.Status == "待确认" ? "info" : "success")">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-dark fs-5">@item.RepairType</span>
+                        <span class="badge bg-@(item.Status == "待接单" ? "danger" : item.Status == "维修中" ? "warning text-dark" : item.Status == "待确认" ? "info text-dark" : "success")">@item.Status</span>
+                    </div>
+                    <div class="card-body py-2">
+                        <p class="card-text text-truncate text-muted small mb-2" title="@item.Description">📝 @item.Description</p>
+                        <div class="bg-light p-2 rounded small mb-2">
+                            <div>报修: <strong>@item.Owner?.Name</strong> (@item.Owner?.RoomNo)</div>
+                            <div>报修时间: @item.CreateTime.ToString("MM-dd HH:mm")</div>
+                        </div>
+
+                        @if (item.Status == "待接单")
+                        {
+                            <!-- 核心调度：指派给维修工 -->
+                            <form method="post" action="/AdminRepair/DispatchOrder" class="input-group input-group-sm mt-3">
+                                <input type="hidden" name="requestId" value="@item.Id" />
+                                <select name="workerId" class="form-select border-danger" required>
+                                    <option value="">-- 指派师傅 --</option>
+                                    @foreach (var w in ViewBag.MaintenanceWorkers)
+                                    {
+                                        <option value="@w.Id">@w.FullName</option>
+                                    }
+                                </select>
+                                <button class="btn btn-danger" type="submit">派单</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="text-primary small mt-2">处理人: <strong>@(item.Worker?.FullName ?? "管理员处理")</strong></div>
+                        }
+                    </div>
+
+                    <div class="card-footer bg-white border-0 d-flex justify-content-between gap-1">
+                        <a href="/AdminRepair/Detail/@item.Id" class="btn btn-sm btn-outline-secondary flex-grow-1">时间轴追踪</a>
+
+                        <!-- 状态推进按钮 -->
+                        @if (item.Status == "维修中")
+                        {
+                            <a href="/AdminRepair/Complete/@item.Id" class="btn btn-sm btn-warning fw-bold flex-grow-1 text-dark">传图完工</a>
+                        }
+                        @if (item.Status == "待确认")
+                        {
+                            <a href="/AdminRepair/Evaluate/@item.Id" class="btn btn-sm btn-info fw-bold flex-grow-1 text-dark">代评确认</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <partial name="_Pagination" model="Model" />
+
+</div>
+<style>
+    .hover-up {
+        transition: transform 0.2s;
+    }
+
+        .hover-up:hover {
+            transform: translateY(-5px);
+        }</style>

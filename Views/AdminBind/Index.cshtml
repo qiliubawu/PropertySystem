@@ -1,0 +1,67 @@
+﻿@{
+    ViewData["Title"] = "资产凭证发证中心";
+}
+
+<div class="container mt-4">
+    <h2 class="text-warning">🔑 资产凭证发证中心</h2>
+    <p class="text-muted">请为未分配的资产生成凭证码，并将凭证码交给业主，由业主在手机端自助完成认领认证。</p>
+    <hr />
+
+    <div class="row">
+        <!-- 左侧：待发证房屋 -->
+        <div class="col-md-6">
+            <h4 class="text-primary">待发证房屋</h4>
+            <table class="table table-bordered text-center">
+                <thead class="table-primary"><tr><th>房屋</th><th>凭证状态</th><th>操作</th></tr></thead>
+                <tbody>
+                    @foreach (var house in ViewBag.UnboundHouses)
+                    {
+                        <tr>
+                            <td>@house.BuildingNo 栋 @house.UnitNo 单元 @house.RoomNo</td>
+                            <td>
+                                @if (string.IsNullOrEmpty(house.CertCode))
+                                {
+                                    <span class="badge bg-secondary">未生成</span>
+                                }
+                                else
+                                {
+
+                                    <strong class="text-danger" style="font-size:1.2em; letter-spacing:2px;">@house.CertCode</strong>
+                                }
+                            </td>
+                            <td><a href="/AdminBind/GenerateHouseCode/@house.Id" class="btn btn-sm btn-warning">重新生成</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 右侧：待发证车位 -->
+        <div class="col-md-6">
+            <h4 class="text-success">待发证车位</h4>
+            <table class="table table-bordered text-center">
+                <thead class="table-success"><tr><th>车位号</th><th>凭证状态</th><th>操作</th></tr></thead>
+                <tbody>
+                    @foreach (var parking in ViewBag.UnboundParkings)
+                    {
+                        <tr>
+                            <td>@parking.ParkingNo (@parking.Location)</td>
+                            <td>
+                                @if (string.IsNullOrEmpty(parking.CertCode))
+                                {
+                                    <span class="badge bg-secondary">未生成</span>
+                                }
+                                else
+                                {
+
+                                    <strong class="text-danger" style="font-size:1.2em; letter-spacing:2px;">@parking.CertCode</strong>
+                                }
+                            </td>
+                            <td><a href="/AdminBind/GenerateParkingCode/@parking.Id" class="btn btn-sm btn-warning">重新生成</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

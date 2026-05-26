@@ -1,0 +1,46 @@
+## ASP.NET Core
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## VS Code
+.vscode/
+
+## Visual Studio
+.vs/
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww]indows/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+## NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nupkg
+**/[Pp]ackages/repositories.config
+
+## Upload files
+wwwroot/uploads/
+
+## Database
+*.mdf
+*.ldf
+*.bak
+*.sqlite
+
+## OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,93 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.MaterialRequest>
+@{
+    ViewData["Title"] = "物资申报审批";
+}
+
+<div class="container-fluid mt-4 px-4">
+    <ul class="nav nav-tabs fs-6 fw-bold mb-4">
+        <li class="nav-item"><a class="nav-link text-muted" href="/AdminMaterial/Index"><i class="bi bi-box-seam"></i> 现有库存清单</a></li>
+        <li class="nav-item"><a class="nav-link active text-primary" href="/AdminMaterial/Requests"><i class="bi bi-clipboard-check"></i> 员工申报审批</a></li>
+    </ul>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold shadow-sm">@TempData["Success"]</div>
+    }
+
+    <table class="table table-bordered table-hover align-middle bg-white shadow-sm text-center">
+        <thead class="table-light"><tr><th>申请人</th><th>需求物品</th><th>申请数量</th><th>申领原因</th><th>状态/进度</th><th>操作</th></tr></thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td><strong class="text-primary">@item.Staff.FullName</strong><br /><small class="text-muted">@item.Staff.Role</small></td>
+                    <td class="fw-bold fs-5 text-dark">@item.ItemName</td>
+                    <td><span class="badge bg-dark fs-6">@item.Quantity 个/件</span></td>
+                    <td class="text-muted small text-start" style="max-width:200px;">@item.Reason</td>
+                    <td>
+                        <span class="badge bg-@(item.Status == "待处理" ? "danger" : item.Status == "已入库" ? "success" : "secondary")">@item.Status</span><br />
+                        <small class="text-muted">@item.RequestTime.ToString("MM-dd HH:mm")</small>
+                    </td>
+                    <td>
+                        @if (item.Status == "待处理")
+                        {
+                            <button class="btn btn-sm btn-primary fw-bold" onclick="openProcessModal(@item.Id, '@item.ItemName')">审核并入库</button>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">主管批复: @(item.AdminReply ?? "无")</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_Pagination" model="Model" />
+</div>
+
+<!-- 审批转化弹窗 -->
+<div class="modal fade" id="processModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h6 class="modal-title fw-bold">审批采购入库单</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/AdminMaterial/ProcessRequest" class="modal-body bg-light">
+                <input type="hidden" name="requestId" id="modalReqId" />
+
+                <div class="alert alert-info py-2 small mb-3">
+                    批准后，系统将自动把该物品按填写的单价录入总库存中。如果 SKU 已存在，则只增加库存量。
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-dark small fw-bold">设置/匹配物料SKU编码</label>
+                    <input type="text" name="sku" class="form-control border-primary fw-bold" placeholder="如：M-009" required />
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-8">
+                        <label class="form-label text-dark small fw-bold">核算采购单价 (元)</label>
+                        <input type="number" name="unitPrice" step="0.01" class="form-control" value="10.00" required />
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label text-dark small fw-bold">计量单位</label>
+                        <input type="text" name="unit" class="form-control" value="个" required />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-dark small fw-bold">审批意见/回复</label>
+                    <textarea name="reply" class="form-control" rows="2" placeholder="如：已同意采购并补充入库..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" name="action" value="Reject" class="btn btn-outline-danger w-100 fw-bold">驳回申请</button>
+                    <button type="submit" name="action" value="Approve" class="btn btn-primary w-100 fw-bold">批准并入库</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script> function openProcessModal(id, name) { document.getElementById('modalReqId').value = id; new bootstrap.Modal(document.getElementById('processModal')).show(); } </script>

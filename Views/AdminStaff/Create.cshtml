@@ -1,0 +1,61 @@
+﻿@model PropertySystem.Models.User
+@{
+    ViewData["Title"] = "员工档案管理";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white text-center fw-bold fs-5">
+                    办理员工入职
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        <!-- 如果是Edit页面，隐藏ID -->
+                        @if (Model.Id > 0)
+                        {
+                            <input type="hidden" asp-for="Id" />
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">真实姓名</label>
+                            <input asp-for="FullName" class="form-control form-control-lg bg-light" placeholder="如：李师傅" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">系统登录账号 (手机号或工号)</label>
+                            <input asp-for="Username" class="form-control form-control-lg border-primary" placeholder="将用于登录系统" required />
+                            <span asp-validation-for="Username" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-danger">设置登录密码</label>
+                            <!-- 默认给一个初始密码123456 -->
+                            <input asp-for="Password" class="form-control form-control-lg border-danger" value="@(Model.Id > 0 ? Model.Password : "123456")" required />
+                            <small class="text-muted">如离职但不能删除账号，可在此将密码改为乱码使其无法登录。</small>
+                        </div>
+
+                        <hr />
+
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <label class="form-label fw-bold text-primary">分配系统控制权限 (Role)</label>
+                            <select asp-for="Role" class="form-select form-select-lg" required>
+                                <option value="Admin">项目主管/系统管理员 (拥有一切后台决策与管理权限)</option>
+                                <option value="FireSafety">消防安全员 (专属移动端：监控与处理小区消防安防设备)</option>
+                                <option value="Maintenance">维修工程师 (专属移动端：负责在抢单大厅接单维修)</option>
+                                <option value="Security">保安门卫 (专属移动端：负责重点巡更与访客核销)</option>
+                                <option value="Cleaner">保洁人员 (专属移动端：负责保洁打卡交班)</option>
+                            </select>
+
+                            <div class="mt-2 text-muted small">注：分配维修工程师角色后，系统将在“报修调度中心”自动将该员工列入派单名单。</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">保存员工档案</button>
+                        <a href="/AdminStaff/Index" class="btn btn-link w-100 mt-2 text-center text-muted">取消并返回通讯录</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,104 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.House>
+@{
+    ViewData["Title"] = "房屋明细列表";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between mb-3">
+        <h2>房屋明细数据列表 (支持批量操作)</h2>
+        <a href="/AdminSmartHouse/Index" class="btn btn-outline-primary fw-bold">返回可视化沙盘</a>
+    </div>
+    <hr />
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger fw-bold">@TempData["Error"]</div>
+    }
+
+    <!-- 搜索栏 -->
+    <form method="get" class="row g-3 mb-4 bg-light p-3 border rounded shadow-sm">
+        <div class="col-auto"><input type="number" name="searchBuilding" class="form-control" placeholder="搜楼栋" value="@ViewBag.SearchBuilding" /></div>
+        <div class="col-auto"><input type="text" name="searchUnit" class="form-control" placeholder="搜单元" value="@ViewBag.SearchUnit" /></div>
+        <div class="col-auto"><input type="text" name="searchRoom" class="form-control" placeholder="搜房间号" value="@ViewBag.SearchRoom" /></div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">精准搜索</button>
+            <a href="/AdminSmartHouse/RoomList" class="btn btn-light border text-muted">重置</a>
+        </div>
+
+    </form>
+
+    <!-- 🌟 核心：批量操作表单包裹着整个 Table -->
+    <form method="post" action="/AdminSmartHouse/BatchDeleteRooms" id="batchForm">
+        <div class="mb-3 d-flex gap-2">
+            <a href="/AdminSmartHouse/CreateSingle" class="btn btn-success fw-bold shadow-sm">单条添加房间</a>
+            <button type="submit" class="btn btn-danger fw-bold shadow-sm" onclick="return confirm('确定要删除所有选中的房屋吗？');">
+                批量删除选中项
+            </button>
+        </div>
+
+        <table class="table table-bordered table-hover text-center align-middle shadow-sm bg-white">
+            <thead class="table-dark">
+                <tr>
+                    <!-- 全选复选框 -->
+                    <th width="5%"><input class="form-check-input" type="checkbox" id="selectAll" style="transform: scale(1.3);"></th>
+                    <th>楼栋单元</th>
+                    <th>楼层/房间</th>
+                    <th>面积(㎡)</th>
+                    <th>当前业主</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="@(item.OwnerId != null ? "table-light" : "")">
+                        <td>
+                            <!-- 只有没卖出去的空房子才能被勾选 -->
+                            @if (item.OwnerId == null)
+                            {
+                                <input class="form-check-input room-checkbox" type="checkbox" name="selectedIds" value="@item.Id" style="transform: scale(1.3);">
+                            }
+                            else
+                            {
+                                <i class="bi bi-lock-fill text-muted" title="已售出，锁定不可删"></i>
+                            }
+                        </td>
+                        <td><strong>@item.BuildingNo 栋 - @item.UnitNo 单元</strong></td>
+                        <td><span class="badge bg-secondary">@(item.Floor == "B1" ? "B1层" : item.Floor + " F")</span> @item.RoomNo</td>
+                        <td>@item.Area</td>
+                        <td>
+                            @if (item.Owner != null)
+                            {
+                                <span class="text-primary fw-bold">@item.Owner.Name</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">空置</span>
+                            }
+                        </td>
+
+                        <td>
+                            <a href="/AdminSmartHouse/Edit/@item.Id" class="btn btn-sm btn-outline-primary">✏️</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </form>
+
+    <partial name="_Pagination" model="Model" />
+</div>
+
+<!-- 极其好用的原生 JS：实现全选/反选功能 -->
+<script>
+    document.getElementById('selectAll').addEventListener('change', function() {
+        var checkboxes = document.querySelectorAll('.room-checkbox');
+        for (var checkbox of checkboxes) {
+            checkbox.checked = this.checked;
+        }
+    });
+</script>

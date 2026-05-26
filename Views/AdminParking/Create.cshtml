@@ -1,0 +1,55 @@
+﻿@model PropertySystem.Models.ParkingSpace
+@{
+    ViewData["Title"] = "添加车位";
+}
+
+<div class="container mt-4">
+    <h2>添加车位</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-5">
+            <form method="post">
+                <!-- action不写默认提交到当前URL -->
+                <!-- 如果是Edit页面，请在这里加上 <input type="hidden" asp-for="Id" /> -->
+
+                <div class="mb-3">
+                    <label class="form-label">车位编号 (如 A-001)</label>
+                    <input asp-for="ParkingNo" class="form-control" />
+                    <span asp-validation-for="ParkingNo" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">所在位置</label>
+                    <input asp-for="Location" class="form-control" placeholder="如: 地下B1区, 地上东门" />
+                    <span asp-validation-for="Location" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">面积(㎡)</label>
+                        <input asp-for="Area" class="form-control bg-light" readonly />
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">车位类型</label>
+                        <input asp-for="Type" class="form-control bg-light" readonly />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">绑定状态</label>
+                    <input asp-for="Status" class="form-control bg-light" readonly />
+                    <small class="text-muted">状态由系统自动更新，只能在"绑定模块"操作</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 mt-3">保存数据</button>
+                <a href="/AdminParking/Index" class="btn btn-link w-100 mt-2 text-center">返回列表</a>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

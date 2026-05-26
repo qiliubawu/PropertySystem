@@ -1,0 +1,25 @@
+﻿<div class="modal fade" id="materialRequestModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="align-items: flex-end; margin:0; height:100%;">
+        <div class="modal-content border-0" style="border-radius: 12px 12px 0 0; padding-bottom:env(safe-area-inset-bottom);">
+            <div class="modal-header bg-light border-0">
+                <h6 class="modal-title fw-bold mx-auto text-dark"><i class="bi bi-box-seam text-primary"></i> 缺件/损耗物资申报</h6>
+                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/StaffShared/SubmitMaterialRequest" class="modal-body bg-white">
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">所需物资名称</label>
+                    <input type="text" name="itemName" class="form-control bg-light border-0" placeholder="如：大扫把、防爆盾、水管..." required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-muted small">申请数量</label>
+                    <input type="number" name="quantity" class="form-control bg-light border-0" min="1" value="1" required />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-muted small">申请事由 / 损坏情况说明</label>
+                    <textarea name="reason" class="form-control bg-light border-0" rows="3" placeholder="例如：原来那个把手断了，无法使用..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill">提交至管理处审批</button>
+            </form>
+        </div>
+    </div>
+</div>

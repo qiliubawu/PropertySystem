@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] = "智能车库地图";
+}
+
+<div class="container-fluid mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-dark"><i class="bi bi-map"></i> 小区智能车库网格化沙盘</h4>
+        <div>
+            <!-- 跳转去批量生成的页面 -->
+            <a href="/AdminParking/BatchCreate" class="btn btn-warning fw-bold text-dark me-2">去批量建车位</a>
+            <!-- 退回传统列表 -->
+            <a href="/AdminParking/Index" class="btn btn-outline-dark">返回列表模式</a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold">@TempData["Success"]</div>
+    }
+    <hr />
+
+    <div class="row">
+        @if (ViewBag.GroupedParkings != null && ((IEnumerable<dynamic>)ViewBag.GroupedParkings).Any())
+        {
+            foreach (var group in ViewBag.GroupedParkings)
+            {
+                <div class="col-12 mb-5">
+                    <h5 class="text-primary fw-bold mb-3 border-start border-primary border-3 ps-2">@group.Key</h5>
+
+                    <!-- 极其强大的 CSS Grid 停车场布局 -->
+                    <div class="parking-grid">
+                        @foreach (var p in group)
+                        {
+                            var isVacant = p.OwnerId == null;
+                            <!-- 颜色区分：空的是白底绿边，卖掉的是灰底 -->
+                            var cardClass = isVacant ? "bg-white border-success" : "bg-light border-secondary text-muted";
+
+                            <div class="card @cardClass parking-slot text-center shadow-sm">
+                                <div class="card-header p-1 fw-bold fs-6 border-bottom-0 @(isVacant ? "text-success" : "text-secondary")" style="background: transparent;">
+                                    @p.ParkingNo
+                                </div>
+                                <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                    @if (isVacant)
+                                    {
+                                        <h6 class="mb-0 text-success fw-bold">空置可售</h6>
+                                        <small class="opacity-75">@p.Type</small>
+                                    }
+                                    else
+                                    {
+                                        <!-- 防报错机制：加上了 ?. 防止 owner 丢失报错 -->
+                                        <strong class="text-dark">业主@(p.Owner?.Name ?? "业主未命名")</strong>
+                                        <span class="badge bg-secondary mt-1 fs-6">@(p.Owner?.CarPlate ?? "未登车牌")</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <!-- 占位空提示：如果数据库里没车位，强制引导管理员去生成 -->
+            <div class="col-12">
+                <div class="text-center text-muted p-5 bg-white rounded shadow-sm border mt-4">
+                    <i class="bi bi-cone-striped text-warning opacity-50 mb-3 d-block" style="font-size: 4rem;"></i>
+                    <h5 class="fw-bold">当前车库一片空地，没有任何车位数据！</h5>
+                    <p>请点击右上角的【去批量建车位】按钮，让系统自动扫描大楼并划设停车位。</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* 使用 CSS Grid 完美模拟现实停车场的格子排列 */
+    .parking-grid {
+        display: grid;
+        /* 自动适应宽度，每个车位最小140px，挤满一行后自动换行 */
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 15px;
+    }
+
+    .parking-slot {
+        height: 100px;
+        transition: transform 0.2s;
+        border-width: 2px !important;
+    }
+
+        .parking-slot:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+        }
+</style>

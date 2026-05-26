@@ -1,0 +1,39 @@
+﻿<!-- 内部员工专属报修弹窗 (底部滑出) -->
+<div class="modal fade" id="staffRepairModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="align-items: flex-end; margin:0; height:100%;">
+        <div class="modal-content border-0" style="border-radius: 20px 20px 0 0; padding-bottom:env(safe-area-inset-bottom);">
+            <div class="modal-header bg-light border-0">
+                <h6 class="modal-title fw-bold mx-auto text-primary"><i class="bi bi-megaphone-fill"></i> 内部员工·公共报修通道</h6>
+                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/StaffShared/SubmitPublicRepair" enctype="multipart/form-data" class="modal-body bg-white">
+
+                <div class="alert alert-info py-2 small mb-3 border-0 bg-light">
+                    系统将自动打上您的工牌水印，并派发至维修抢单大厅。
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">故障设备/项目分类</label>
+                    <select name="repairType" class="form-select bg-light border-0" required>
+                        <option value="公共设施">公共设施损坏 (门禁/道闸/路灯等)</option>
+                        <option value="水路管道">公共水路管道漏水</option>
+                        <option value="电路电器">公共电路异常</option>
+                        <option value="消防器材">消防器材破损</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">精确位置与故障描述</label>
+                    <textarea name="description" class="form-control bg-light border-0" rows="3" placeholder="例如：地下B1层A区，照明灯不亮了..." required></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark small">现场拍照取证</label>
+                    <input type="file" name="imageFile" class="form-control bg-light border-0" accept="image/*" capture="camera" required />
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill shadow-sm py-3">一键呼叫维修工程师</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,40 @@
+﻿@model PropertySystem.Models.ShiftHandover
+@{
+    Layout = "~/Views/Shared/_CleanerLayout.cshtml"; ViewData["Title"] = "交接班登记"; ViewData["ActiveTab"] = "Handover";
+}
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-success fw-bold text-center fs-5">@TempData["Msg"]</div>
+}
+
+<div class="card shadow-sm border-0 mb-4 rounded-3">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-3">填写交班日志</h5>
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label text-muted fw-bold">接班人姓名</label>
+                <input asp-for="ToCleanerName" class="form-control form-control-lg bg-light" placeholder="如: 张阿姨" required />
+            </div>
+            <div class="mb-4">
+                <label class="form-label text-danger fw-bold">遗留问题与工具去向</label>
+                <textarea asp-for="LeftoverIssues" class="form-control bg-light" rows="3" placeholder="例如：拖把放在B区地下室了；2栋大堂玻璃碎了还没修好..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold py-3">提交交接单</button>
+        </form>
+    </div>
+</div>
+
+<h6 class="fw-bold text-secondary mb-3">我的交班历史</h6>
+@foreach (var item in ViewBag.History)
+{
+    <div class="card border mb-2 bg-white">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between text-muted small mb-1">
+                <span>交给: <strong>@item.ToCleanerName</strong></span>
+                <span>@item.HandoverTime.ToString("MM-dd HH:mm")</span>
+            </div>
+            <p class="mb-0 text-dark">@item.LeftoverIssues</p>
+        </div>
+    </div>
+}

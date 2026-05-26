@@ -1,0 +1,107 @@
+﻿@model IEnumerable<dynamic>
+@{
+    ViewData["Title"] = "群体画像库";
+}
+
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h4 class="fw-bold text-dark"><i class="bi bi-tags text-success"></i> 业主群体画像 (CRM)</h4>
+        <span class="text-muted small">精细化管理标签库</span>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold shadow-sm">@TempData["Success"]</div>
+    }
+    <form method="get" class="d-flex gap-2 mb-3 p-3 bg-white border">
+        <input type="text" name="searchName" class="form-control w-25" placeholder="搜索业主姓名" value="@ViewBag.SearchName" />
+        <button type="submit" class="btn btn-primary">查找画像</button>
+        <a href="/AdminOwner/OwnerPortrait" class="btn btn-light border text-muted">重置</a>
+    </form>
+
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover align-middle bg-white mb-0">
+                <thead class="table-light text-center">
+                    <tr><th width="15%">业主姓名</th><th width="15%">服务特征提取</th><th width="50%">客户画像标签矩阵</th><th width="20%">操作</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-center fw-bold fs-5 text-primary">业主 @item.Owner.Name</td>
+                            <td class="text-center small text-muted">
+                                历史报修: @item.RepairCount 次<br />
+                                <span class="text-danger">投诉记录: @item.ComplaintCount 次</span>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.Owner.Tags))
+                                {
+                                    @foreach (var tag in item.Owner.Tags.Split(new[] { ',', '，' }, StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        <span class="badge rounded-pill bg-light text-primary fs-6 me-1 mb-1 border border-primary"># @tag.Trim()</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">暂无画像特征，请完善</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary fw-bold" onclick="openTagModal(@item.Owner.Id, '@item.Owner.Name', '@item.Owner.Tags')">
+                                    <i class="bi bi-pencil-square"></i> 调整标签
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 快速打标签弹窗 -->
+<div class="modal fade" id="tagModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title fw-bold text-dark">编辑客户画像标签</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/AdminOwner/UpdateOwnerTags" class="modal-body p-4 bg-light">
+                <input type="hidden" name="ownerId" id="modalOwnerId" />
+                <h6 class="text-primary mb-3 fw-bold" id="modalOwnerName"></h6>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">手动输入特征 (多个用逗号分隔)</label>
+                    <input type="text" name="tags" id="modalTags" class="form-control form-control-lg border-primary" placeholder="例如：独居老人, 养狗, 意见领袖..." />
+                </div>
+
+                <div class="mt-4 small">
+                    <strong class="text-muted">快捷添加：</strong><br />
+                    <div class="mt-2">
+                        <span class="badge bg-white text-dark border p-2 me-1" style="cursor:pointer" onclick="addTag('独居老人')">+独居老人</span>
+                        <span class="badge bg-white text-dark border p-2 me-1" style="cursor:pointer" onclick="addTag('养宠户')">+养宠户</span>
+                        <span class="badge bg-white text-dark border p-2 me-1" style="cursor:pointer" onclick="addTag('意见领袖')">+意见领袖</span>
+                        <span class="badge bg-white text-dark border p-2 me-1" style="cursor:pointer" onclick="addTag('重点关怀')">+重点关怀</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mt-4 py-2 fw-bold">保存画像配置</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openTagModal(id, name, tags) {
+        document.getElementById('modalOwnerId').value = id;
+        document.getElementById('modalOwnerName').innerText = "当前客户: " + name;
+        document.getElementById('modalTags').value = tags;
+        new bootstrap.Modal(document.getElementById('tagModal')).show();
+    }
+    function addTag(tag) {
+        var input = document.getElementById('modalTags');
+        if(input.value) input.value += "，" + tag; else input.value = tag;
+    }
+</script>

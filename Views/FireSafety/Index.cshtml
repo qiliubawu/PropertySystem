@@ -1,0 +1,100 @@
+﻿@{
+    Layout = "~/Views/Shared/_FireSafetyLayout.cshtml"; ViewData["Title"] = "消防安防智控中心"; ViewData["ActiveTab"] = "Task";
+}
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-danger fw-bold text-center fs-6 shadow-sm border-danger">@TempData["Msg"]</div>
+}
+
+<!-- 顶部数据看板 -->
+<div class="d-flex justify-content-between text-center mb-4">
+    <div class="bg-white p-3 rounded shadow-sm w-100 me-2 border-top border-4 border-danger">
+        <h2 class="fw-bold text-danger mb-0">@(((IEnumerable<dynamic>)ViewBag.ErrorEqs).Count())</h2>
+        <small class="text-muted fw-bold">故障瘫痪</small>
+    </div>
+    <div class="bg-white p-3 rounded shadow-sm w-100 mx-1 border-top border-4 border-warning">
+        <h2 class="fw-bold text-warning mb-0">@(((IEnumerable<dynamic>)ViewBag.UrgentEqs).Count())</h2>
+        <small class="text-muted fw-bold">巡检超期</small>
+    </div>
+    <div class="bg-white p-3 rounded shadow-sm w-100 ms-2 border-top border-4 border-success">
+        <h2 class="fw-bold text-success mb-0">@ViewBag.NormalCount</h2>
+        <small class="text-muted fw-bold">守卫中</small>
+    </div>
+</div>
+
+<h6 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> 急需排查设备 (红灯名单)</h6>
+
+<!-- 渲染故障的设备 -->
+@foreach (var item in ViewBag.ErrorEqs)
+{
+    <div class="card shadow-sm border-0 mb-3 bg-danger text-white" style="border-radius:12px;">
+        <div class="card-body">
+            <h5 class="fw-bold mb-1">@item.Name</h5>
+            <p class="small opacity-75 mb-2"><i class="bi bi-geo-alt-fill"></i> @item.Location | 编号: @item.EquipmentNo</p>
+            <div class="bg-white text-danger p-2 rounded text-center fw-bold mb-3">当前状态：损坏瘫痪，急需维修！</div>
+            <button class="btn btn-outline-light w-100 fw-bold" onclick="openCheckModal(@item.Id, '@item.Name')">完成维修并复检</button>
+        </div>
+    </div>
+}
+
+<!-- 渲染超期的设备 -->
+@foreach (var item in ViewBag.UrgentEqs)
+{
+    <div class="card shadow-sm border-0 mb-3 border border-warning" style="border-radius:12px;">
+        <div class="card-body">
+            <h5 class="fw-bold text-dark mb-1">@item.Name</h5>
+            <p class="small text-muted mb-2"><i class="bi bi-geo-alt-fill"></i> @item.Location | 编号: @item.EquipmentNo</p>
+            <div class="alert alert-warning py-1 px-2 small fw-bold mb-3 border-0">电子合格标已过期，请立即前往巡检确认压力！</div>
+            <button class="btn btn-warning w-100 text-dark fw-bold" onclick="openCheckModal(@item.Id, '@item.Name')">扫码到达，立即检查</button>
+        </div>
+    </div>
+}
+
+@if (((IEnumerable<dynamic>)ViewBag.ErrorEqs).Count() == 0 && ((IEnumerable<dynamic>)ViewBag.UrgentEqs).Count() == 0)
+{
+    <div class="text-center text-muted p-5 mt-4">
+        <i class="bi bi-shield-check text-success opacity-50" style="font-size: 5rem;"></i>
+        <h5 class="mt-3 fw-bold">全区消防设备均处于正常状态</h5>
+        <p class="small">岁月静好，继续保持！</p>
+    </div>
+}
+
+<!-- 巡检动作弹窗 -->
+<div class="modal fade" id="checkModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="align-items:flex-end; margin:0; height:100%;">
+        <div class="modal-content border-0" style="border-radius:20px 20px 0 0;">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title fw-bold mx-auto"><i class="bi bi-clipboard2-check"></i> 消防安防现场巡检报告</h5>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/FireSafety/CheckAndRenew" class="modal-body bg-light text-center">
+                <input type="hidden" name="eqId" id="modalEqId" />
+                <h5 class="text-dark fw-bold mb-4 mt-3" id="modalEqName"></h5>
+
+                <p class="text-muted small mb-3">经本人现场排查核实，该设备当前情况为：</p>
+
+                <div class="d-flex gap-3 mb-4">
+                    <button type="submit" name="checkResult" value="正常" class="btn btn-success btn-lg w-100 py-3 fw-bold shadow-sm" onclick="return confirm('确认该设备压力正常、完好无损吗？(将续期半年)')">
+                        <i class="bi bi-check-circle"></i> 完好正常
+                    </button>
+                    <button type="submit" name="checkResult" value="损坏" class="btn btn-danger btn-lg w-100 py-3 fw-bold shadow-sm" onclick="return confirm('确认提交故障警报吗？')">
+                        <i class="bi bi-x-circle"></i> 损坏遗失
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script> function openCheckModal(id, name) { document.getElementById('modalEqId').value = id; document.getElementById('modalEqName').innerText = name; new bootstrap.Modal(document.getElementById('checkModal')).show(); } </script>
+<style>
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out;
+        transform: translateY(100%);
+    }
+
+    .modal.show .modal-dialog {
+        transform: translateY(0);
+    }
+</style>

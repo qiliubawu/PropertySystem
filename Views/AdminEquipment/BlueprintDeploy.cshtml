@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "标准化蓝图部署";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+        <!-- 头部极客风设计 -->
+        <div class="card-header text-white p-4" style="background: bg-white(135deg, #2c3e50 0%, #3498db 100%);">
+            <h3 class="fw-bold mb-1"><i class="bi bi-diagram-3-fill"></i> 智慧社区·一键全景蓝图部署引擎</h3>
+            <p class="mb-0 opacity-75">BIM Blueprint Deployment System</p>
+        </div>
+
+        <div class="card-body p-5 bg-light">
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger fw-bold shadow-sm">@TempData["Error"]</div>
+            }
+
+            <div class="row mb-4">
+                <div class="col-md-4 text-center border-end">
+                    <h1 class="display-3 text-primary fw-bold">@ViewBag.BuildingCount</h1>
+                    <p class="text-muted fw-bold">系统检测到当前已建楼栋数</p>
+                </div>
+                <div class="col-md-8">
+                    <h5 class="fw-bold text-dark mb-3">即将执行的建设SOP标准：</h5>
+                    <ul class="list-group shadow-sm">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-arrow-up-square-fill text-primary"></i> 垂直交通：每栋楼配备 <strong>2部电梯 (客梯+货梯)</strong></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-trash3-fill text-success"></i> 环保设施：每栋楼下定点投放 <strong>4个分类垃圾桶</strong></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-ev-station-fill text-info"></i> 便民设施：每栋楼前部署 <strong>1组电瓶车充电桩</strong></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-shield-shaded text-danger"></i> 安防网格：系统将穿透所有楼层，<strong>每层配置监控与消防设备</strong></span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-tree-fill text-success"></i> 公共区域：中央广场配置<strong>娱乐/健身设施</strong>，大门配置道闸等</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <form method="post" action="/AdminEquipment/BlueprintDeploy" class="bg-white p-4 rounded shadow-sm border mt-4">
+                <div class="mb-3 text-center">
+                    <label class="form-label fw-bold text-success fs-5">请设定这批设备的统一下次维保期限</label>
+                    <input type="date" name="nextMaintenanceDate" class="form-control form-control-lg text-center w-50 mx-auto fw-bold text-primary" value="@DateTime.Now.AddMonths(6).ToString("yyyy-MM-dd")" required />
+                </div>
+
+                <hr class="my-4" />
+
+                <button type="submit" class="btn btn-primary btn-lg w-100 py-3 fw-bold fs-4 shadow" style="background: bg-white(135deg, #1e3c72 0%, #2a5298 100%); border:none;" onclick="return confirm('系统将进行庞大的并发运算，瞬间生成海量设备数据，确认执行吗？');">
+                    <i class="bi bi-magic"></i> 确认无误，立即执行全小区设备覆盖
+                </button>
+                <div class="text-center mt-3">
+                    <a href="/AdminEquipment/Index" class="text-muted text-decoration-none">取消并返回台账大厅</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

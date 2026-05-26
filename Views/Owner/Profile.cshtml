@@ -1,0 +1,68 @@
+﻿@model PropertySystem.Models.Owner
+@{
+    Layout = "~/Views/Shared/_OwnerLayout.cshtml";
+    ViewData["Title"] = "个人中心";
+    ViewData["ActiveTab"] = "My";
+}
+
+@if (TempData["ProfileSuccess"] != null)
+{
+    <div class="alert alert-success py-2 text-center rounded-pill mb-3 shadow-sm"><i class="bi bi-check-circle"></i> @TempData["ProfileSuccess"]</div>
+}
+
+<!-- 头像与基本资料 -->
+<div class="d-flex align-items-center mb-4 bg-white p-3 rounded shadow-sm position-relative">
+    <!-- 编辑按钮悬浮在右上角 -->
+    <a href="/Owner/EditProfile" class="position-absolute top-0 end-0 mt-3 me-3 text-primary text-decoration-none">
+        <i class="bi bi-pencil-square"></i> 修改资料
+    </a>
+
+    <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold fs-1 me-3 shadow-sm" style="width: 70px; height: 70px;">
+        @Model.Name.Substring(0, 1)
+    </div>
+    <div>
+        <h4 class="fw-bold mb-1">@Model.Name <i class="bi bi-gender-@(Model.Gender == "男" ? "male text-primary" : "female text-danger") fs-6"></i></h4>
+        <p class="text-muted mb-0 small">账号: @Model.Phone</p>
+    </div>
+</div>
+
+
+<!-- 资产列表 -->
+<h6 class="fw-bold text-secondary mb-3">我的资产</h6>
+
+<ul class="list-group mb-4 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+    <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+        <span><i class="bi bi-house-door text-primary me-2"></i>房产信息</span>
+        <span class="text-muted small">@(string.IsNullOrEmpty(Model.RoomNo) ? "未绑定" : Model.RoomNo)</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+        <span><i class="bi bi-car-front text-success me-2"></i>车位信息</span>
+        <span class="text-muted small">@(string.IsNullOrEmpty(Model.ParkingNo) ? "未绑定" : Model.ParkingNo)</span>
+    </li>
+    <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+        <span><i class="bi bi-postcard text-info me-2"></i>车辆号牌</span>
+        <span class="text-muted small">@(string.IsNullOrEmpty(Model.CarPlate) ? "未登记" : Model.CarPlate)</span>
+    </li>
+</ul>
+
+<!-- 自助认证区 -->
+<h6 class="fw-bold text-secondary mb-3">自助资产认证</h6>
+<div class="bg-white p-3 rounded shadow-sm mb-4">
+    @if (TempData["AuthMsg"] != null)
+    {
+        <div class="alert alert-success py-2 small">@TempData["AuthMsg"]</div>
+    }
+    @if (TempData["AuthError"] != null)
+    {
+        <div class="alert alert-danger py-2 small">@TempData["AuthError"]</div>
+    }
+
+    <p class="small text-muted mb-2">输入物业发放的激活凭证码，自动绑定房产或车位</p>
+    <form method="post" action="/Owner/ClaimAsset" class="input-group">
+        <input type="text" name="code" class="form-control bg-light" placeholder="如 HOUSE-XXXX" required>
+        <button class="btn btn-primary" type="submit">立即认证</button>
+    </form>
+</div>
+
+<!-- 退出登录 -->
+<a href="/Account/Logout" class="btn btn-danger w-100 py-2 fw-bold shadow-sm rounded-pill mt-3">退出当前账号</a>

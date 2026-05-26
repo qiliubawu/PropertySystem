@@ -1,0 +1,65 @@
+﻿@model IEnumerable<PropertySystem.Models.Announcement>
+@{
+    // 动态判断加载哪个员工母版页，确保他们看完公告还能点底部菜单切回工作台
+    string role = ViewBag.CurrentRole;
+    if (role == "Security") { Layout = "~/Views/Shared/_SecurityLayout.cshtml"; }
+    else if (role == "Cleaner") { Layout = "~/Views/Shared/_CleanerLayout.cshtml"; }
+    else if (role == "Maintenance") { Layout = "~/Views/Shared/_MaintenanceLayout.cshtml"; }
+    else if (role == "FireSafety") { Layout = "~/Views/Shared/_FireSafetyLayout.cshtml"; }
+    else { Layout = "~/Views/Shared/_Layout.cshtml"; } // Admin 兜底
+
+    ViewData["Title"] = "内部通知大厅";
+}
+
+<div class="bg-white p-3 mb-3 border-bottom d-flex align-items-center">
+    <i class="bi bi-megaphone-fill text-danger fs-3 me-2"></i>
+    <div>
+        <h5 class="fw-bold text-dark mb-0">工作广播与社区动态</h5>
+        <span class="text-muted small">所有部门需密切关注以下通知</span>
+    </div>
+</div>
+
+<div class="px-2 pb-4">
+    @foreach (var item in Model)
+    {
+        <div class="card shadow-sm border-0 mb-3" style="border-radius: 8px; @(item.IsTop ? "border-left: 4px solid red !important;" : "")" onclick="showStaffContent('@item.Title', `@Html.Raw(item.Content.Replace("`", "\\`").Replace("'", "\\'"))`)">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-secondary">@item.Type</span>
+                    <small class="text-muted" style="font-size:0.75rem;">@item.PublishTime.ToString("yyyy-MM-dd HH:mm")</small>
+                </div>
+                <h6 class="fw-bold text-dark text-truncate mb-1">
+                    @if (item.IsTop)
+                    {
+                        <span class="text-danger">消息</span>
+                    }
+     @item.Title
+                </h6>
+                <div class="text-muted small">发送人: @item.Publisher</div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- 富文本阅读全屏弹窗 -->
+<div class="modal fade" id="staffContentModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-light">
+            <div class="modal-header bg-white shadow-sm border-0">
+                <h6 class="modal-title fw-bold text-dark w-100 text-center" id="smTitle">通知详情</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="bg-white p-3 rounded shadow-sm" id="smContent" style="min-height: 80vh; font-family: sans-serif; overflow-x: hidden;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showStaffContent(title, content) {
+        document.getElementById('smTitle').innerText = title;
+        document.getElementById('smContent').innerHTML = content;
+        new bootstrap.Modal(document.getElementById('staffContentModal')).show();
+    }
+</script>

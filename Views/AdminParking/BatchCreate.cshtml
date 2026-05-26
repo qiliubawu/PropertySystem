@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = "车位智能布点";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card shadow-sm border-0" style="border-radius: 15px; overflow:hidden;">
+
+                <div class="card-header text-white p-4" style="background: bg-white(135deg, #f39c12 0%, #e67e22 100%);">
+                    <h3 class="fw-bold mb-1"><i class="bi bi-car-front-fill"></i> 智能车库自动布点引擎</h3>
+                    <p class="mb-0 opacity-75">Automated Parking Layout System</p>
+                </div>
+
+                <div class="card-body p-5 bg-light">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger fw-bold shadow-sm">@TempData["Error"]</div>
+                    }
+
+                    <h5 class="fw-bold text-dark mb-4">请选择要部署的停车区域：</h5>
+
+                    <form method="post" action="/AdminParking/BatchCreate">
+
+                        <!-- 选项 1：地下车库 -->
+                        <div class="card border-primary mb-3 shadow-sm" style="cursor: pointer;" onclick="document.getElementById('checkUG').click()">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="form-check form-switch fs-3 me-3">
+                                    <input class="form-check-input" type="checkbox" name="generateUnderground" value="true" id="checkUG" checked>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-primary mb-1">地下核心车库 (150个)</h5>
+                                    <p class="text-muted small mb-0">分为A、B、C三个大区，每区50个标准产权车位。编号规则：UG-A001</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 选项 2：地上露天车位 -->
+                        <div class="card border-success mb-5 shadow-sm" style="cursor: pointer;" onclick="document.getElementById('checkGR').click()">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="form-check form-switch fs-3 me-3">
+                                    <input class="form-check-input" type="checkbox" name="generateGround" value="true" id="checkGR" checked>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-success mb-1">地上楼前露天区 (@(ViewBag.BuildingCount * 10)个)</h5>
+                                    <p class="text-muted small mb-0">系统检测到目前有 @ViewBag.BuildingCount 栋大楼，将在每栋楼前部署 10 个临时车位。编号规则：GR-B1-01</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning btn-lg w-100 py-3 fw-bold fs-5 text-dark shadow-sm" onclick="return confirm('系统将自动划线并生成大量车位，确定执行吗？');">
+                            确认配置，立即执行全区划线
+                        </button>
+                        <div class="text-center mt-3">
+                            <a href="/AdminParking/Index" class="text-muted text-decoration-none">取消并返回车位管理</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

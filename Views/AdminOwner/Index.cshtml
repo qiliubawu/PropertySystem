@@ -1,0 +1,65 @@
+﻿@model PropertySystem.Models.PaginatedList<PropertySystem.Models.Owner>
+@{
+    ViewData["Title"] = "业主信息管理";
+}
+
+<div class="container-fluid mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h5 class="fw-bold text-dark mb-0">业主档案与客户管理</h5>
+        <a href="/AdminSmartHouse/Index" class="btn btn-sm btn-outline-secondary">返回智能沙盘</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold p-2 small">@TempData["Success"]</div>
+    }
+
+    <form method="get" class="d-flex gap-2 mb-3 p-3 bg-white border">
+        <input type="text" name="searchName" class="form-control w-25" placeholder="搜索姓名" value="@ViewBag.SearchName" />
+        <input type="text" name="searchPhone" class="form-control w-25" placeholder="搜索手机号" value="@ViewBag.SearchPhone" />
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">精准搜索</button>
+            <a href="/AdminOwner/Index" class="btn btn-light border text-muted">重置</a>
+        </div>
+
+    </form>
+
+    <div class="mb-3">
+        <a href="/AdminOwner/Create" class="btn btn-primary">新增业主档案</a>
+    </div>
+
+    <table class="table table-bordered table-hover bg-white text-center align-middle">
+        <thead class="table-light"><tr><th>客户信息</th><th>登录账号(手机)</th><th>核心资产摘要</th><th width="20%">系统操作</th></tr></thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="text-start">
+                        <strong class="fs-5 text-primary">@item.Name</strong> <span class="badge bg-light text-secondary">@item.Gender</span><br />
+                        <span class="text-muted small">@item.Age 岁</span>
+                    </td>
+                    <td>
+                        <span class="fw-bold">@item.Phone</span><br />
+                        <a href="/AdminOwner/ChangePassword/@item.Id" class="text-info text-decoration-none small">修改密码</a>
+                    </td>
+                    <td class="text-start small">
+                        房产: @(string.IsNullOrEmpty(item.RoomNo) ? "无" : item.RoomNo)<br />
+                        车位: @(string.IsNullOrEmpty(item.ParkingNo) ? "无" : item.ParkingNo)<br />
+                        车牌: <span class="text-success">@(string.IsNullOrEmpty(item.CarPlate) ? "未登记" : item.CarPlate)</span>
+                    </td>
+                    <td>
+                        
+                        <a href="/AdminOwner/Profile/@item.Id" class="text-primary text-decoration-none me-2">客户画像</a>
+                        <a href="/AdminOwner/BindAsset/@item.Id" class="text-success text-decoration-none me-2">分配资产</a>
+
+                        <form method="post" action="/AdminOwner/Delete" class="d-inline" onsubmit="return confirm('警告：确定彻底注销该业主吗？');">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-link text-danger text-decoration-none p-0 m-0 border-0 align-baseline">注销户口</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_Pagination" model="Model" />
+</div>

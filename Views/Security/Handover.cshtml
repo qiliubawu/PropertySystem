@@ -1,0 +1,40 @@
+﻿@model PropertySystem.Models.ShiftHandover
+@{
+    Layout = "~/Views/Shared/_SecurityLayout.cshtml"; ViewData["Title"] = "防务交接登记"; ViewData["ActiveTab"] = "Handover";
+}
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-success fw-bold text-center fs-5">@TempData["Msg"]</div>
+}
+
+<div class="card shadow-sm border-0 mb-4 rounded-3" style="border-top: 5px solid #2c3e50;">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-pencil-square"></i> 填写岗位防务交接单</h5>
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label text-muted fw-bold">接岗人员姓名</label>
+                <input asp-for="ToCleanerName" class="form-control form-control-lg bg-light" placeholder="如: 赵保安" required />
+            </div>
+            <div class="mb-4">
+                <label class="form-label text-danger fw-bold">异常情况/重点关注车辆与人员</label>
+                <textarea asp-for="LeftoverIssues" class="form-control bg-light" rows="3" placeholder="例如：警棍与对讲机已移交；今晚3栋有搬家，多留意监控。" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-dark btn-lg w-100 fw-bold py-3 shadow-sm">签字并确认交接</button>
+        </form>
+    </div>
+</div>
+
+<h6 class="fw-bold text-secondary mb-3"><i class="bi bi-clock-history"></i> 本人交岗记录</h6>
+@foreach (var item in ViewBag.History)
+{
+    <div class="card border-0 mb-2 bg-white shadow-sm border-start border-3 border-secondary">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between text-muted small mb-1">
+                <span>接班人: <strong class="text-dark">@item.ToCleanerName</strong></span>
+                <span>@item.HandoverTime.ToString("MM-dd HH:mm")</span>
+            </div>
+            <p class="mb-0 text-dark">@item.LeftoverIssues</p>
+        </div>
+    </div>
+}

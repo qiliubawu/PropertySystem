@@ -1,0 +1,70 @@
+﻿@model PropertySystem.Models.Announcement
+@{ ViewData["Title"] = "发布精美公告"; }
+
+<!-- 引入 Summernote CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+
+<div class="container-fluid mt-2">
+    <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">发布 / 编辑图文公告</h5>
+
+    <form method="post" class="bg-white p-4 border rounded">
+        <input type="hidden" asp-for="Id" />
+        
+        <div class="row">
+            <div class="col-md-8 mb-3">
+                <label class="form-label fw-bold">公告标题</label>
+                <input asp-for="Title" class="form-control" required />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold">分类标签</label>
+                <select asp-for="Type" class="form-select">
+                    <option value="普通通知">普通通知</option>
+                    <option value="社区活动">社区活动</option>
+                    <option value="停水停电">停水停电</option>
+                    <option value="缴费提醒">缴费提醒</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-bold">正文内容 (支持排版)</label>
+            <!-- 👇 外层套一个 div 保护它的样式不被全局 css 污染 -->
+            <div class="bg-white" style="border: 1px solid #ccc;">
+                <textarea asp-for="Content" id="summernote" required></textarea>
+            </div>
+        </div>
+
+        <div class="form-check mb-4">
+            <input asp-for="IsTop" class="form-check-input" type="checkbox" id="topCheck">
+            <label class="form-check-label text-danger fw-bold" for="topCheck">设为紧急置顶</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary px-5 fw-bold">立即发布推送</button>
+        <a href="/AdminAnnouncement/Index" class="btn btn-light border ms-3">取消</a>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-zh-CN.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // 👇 明确给插件指定一个巨大的高度 400px
+            $('#summernote').summernote({
+                lang: 'zh-CN', 
+                height: 400,   
+                minHeight: null,             
+                maxHeight: null,             
+                focus: true,
+                toolbar: [
+                  ['style', ['style']],
+                  ['font', ['bold', 'underline', 'clear', 'color']],
+                  ['para', ['ul', 'ol', 'paragraph']],
+                  ['insert', ['link', 'picture']]
+                ]
+            });
+        });
+    </script>
+}

@@ -1,0 +1,128 @@
+﻿@model PropertySystem.Models.Owner
+@{
+    ViewData["Title"] = "业主全景画像";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>业主 360° 全景画像</h2>
+        <a href="/AdminOwner/Index" class="btn btn-outline-secondary">返回业主列表</a>
+    </div>
+    <hr />
+
+    <div class="row">
+        <!-- 左侧：身份卡片与资产列表 -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-primary mb-4">
+                <div class="card-header bg-primary text-white text-center fw-bold">客户身份档案</div>
+                <div class="card-body">
+                    <h3 class="card-title text-center text-primary mb-3">@Model.Name</h3>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>性别/年龄：</strong>@Model.Gender, @Model.Age 岁</li>
+                        <li class="list-group-item"><strong>联系电话：</strong>@Model.Phone <span class="badge bg-success">已认证账号</span></li>
+                        <li class="list-group-item"><strong>常住人口：</strong>@Model.ResidentCount 人</li>
+                        <li class="list-group-item"><strong>电子邮箱：</strong>@(Model.Email ?? "未预留")</li>
+                        <li class="list-group-item">
+                            <strong>车辆号牌：</strong>
+                            @if (!string.IsNullOrEmpty(Model.CarPlate))
+                            {
+                                <span class="badge bg-primary fs-6">@Model.CarPlate</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">未登记</span>
+                            }
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-success mb-4">
+                <div class="card-header bg-success text-white fw-bold">名下固定资产</div>
+                <div class="card-body">
+                    <h6 class="text-success fw-bold">房产 (@(((IEnumerable<dynamic>)ViewBag.Houses).Count()) 套)</h6>
+                    <ul>
+                        @foreach (var h in ViewBag.Houses)
+                        {
+                            <li>@h.BuildingNo 栋 @h.UnitNo 单元 @h.RoomNo (@h.Area ㎡)</li>
+                        }
+                    </ul>
+                    <hr />
+                    <h6 class="text-success fw-bold">车位 (@(((IEnumerable<dynamic>)ViewBag.Parkings).Count()) 个)</h6>
+                    <ul>
+                        @foreach (var p in ViewBag.Parkings)
+                        {
+                            <li>@p.ParkingNo (@p.Location)</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：动态记录 (账单与报修) -->
+        <div class="col-md-8">
+            <!-- 账单动态 -->
+            <div class="card shadow-sm border-warning mb-4">
+                <div class="card-header bg-warning text-dark fw-bold">近期财务账单记录</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 text-center">
+                        <thead class="table-light"><tr><th>月份</th><th>费用类型</th><th>金额</th><th>状态</th></tr></thead>
+                        <tbody>
+                            @foreach (var b in ViewBag.RecentBills)
+                            {
+                                <tr>
+                                    <td>@b.BillingMonth</td>
+                                    <td>@b.FeeType</td>
+                                    <td class="text-danger fw-bold">¥ @b.Amount</td>
+                                    <td>
+                                        @if (b.IsPaid)
+                                        {
+                                            <span class="badge bg-success">已缴</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge bg-danger">未缴欠费</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            @if (!((IEnumerable<dynamic>)ViewBag.RecentBills).Any())
+                            {
+                                <tr><td colspan="4" class="text-muted p-3">暂无财务记录</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 报修动态 -->
+            <div class="card shadow-sm border-info">
+                <div class="card-header bg-info text-dark fw-bold">近期服务与报修工单</div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0 text-center">
+                        <thead class="table-light"><tr><th>时间</th><th>报修类型</th><th>状态</th><th>客户评价</th></tr></thead>
+                        <tbody>
+                            @foreach (var r in ViewBag.RecentRepairs)
+                            {
+                                <tr>
+                                    <td>@r.CreateTime.ToString("MM-dd")</td>
+                                    <td>@r.RepairType</td>
+                                    <td><span class="badge bg-secondary">@r.Status</span></td>
+                                    <td>
+                                        @if(r.Rating != null) { <span class="text-warning">@r.Rating 星</span> } else { <span>-</span> }
+
+                                    </td>
+                                </tr>
+                            }
+                            @if (!((IEnumerable<dynamic>)ViewBag.RecentRepairs).Any())
+                            {
+                                <tr><td colspan="4" class="text-muted p-3">暂无服务记录</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

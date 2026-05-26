@@ -1,0 +1,26 @@
+﻿@model PropertySystem.Models.RepairRequest
+@{
+    ViewData["Title"] = "完成维修";
+}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="text-warning">上传维修结果</h2><hr />
+            <div class="alert alert-secondary">
+                <strong>原报修内容：</strong>@Model.Description
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+                <div class="mb-3">
+                    <label class="form-label text-success fw-bold">维修处理说明</label>
+                    <textarea asp-for="RepairNotes" class="form-control" rows="3" placeholder="例如：已更换水管，测试不漏水。" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-success fw-bold">上传完工照片 (选填)</label>
+                    <input asp-for="AfterImageFile" type="file" class="form-control" accept="image/*" />
+                </div>
+                <button type="submit" class="btn btn-warning w-100 text-dark">提交结果，转交业主确认</button>
+            </form>
+        </div>
+    </div>
+</div>

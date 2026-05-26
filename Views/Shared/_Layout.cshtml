@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - 物业ERP管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        /* ================= B 端专业商务风 ================= */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #f4f5f7;
+            font-family: "Microsoft YaHei", sans-serif;
+            color: #303133;
+        }
+
+        /* 移除过度浮夸的阴影，保留正常的卡片边框 */
+        * {
+            box-shadow: none !important;
+            border-radius: 2px !important;
+        }
+
+        /* 统一商务低饱和度配色 */
+        .bg-primary, .btn-primary {
+            background-color: #1890ff !important;
+            border-color: #1890ff !important;
+            color: #fff !important;
+        }
+
+        .bg-success, .btn-success {
+            background-color: #52c41a !important;
+            border-color: #52c41a !important;
+            color: #fff !important;
+        }
+
+        .bg-danger, .btn-danger {
+            background-color: #f5222d !important;
+            border-color: #f5222d !important;
+            color: #fff !important;
+        }
+
+        .bg-warning, .btn-warning {
+            background-color: #faad14 !important;
+            border-color: #faad14 !important;
+            color: #fff !important;
+        }
+
+        .bg-info, .btn-info {
+            background-color: #e6f7ff !important;
+            border-color: #91d5ff !important;
+            color: #1890ff !important;
+        }
+
+        .table {
+            border: 1px solid #dfe1e6;
+            background-color: #fff;
+        }
+
+        .table-dark, .table-light {
+            background-color: #fafbfc !important;
+            color: #42526e !important;
+            border-bottom: 2px solid #dfe1e6 !important;
+        }
+
+        .table th {
+            font-weight: 600;
+            font-size: 13px;
+            padding: 12px;
+        }
+
+        .table td {
+            padding: 12px;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+
+        .card {
+            border: 1px solid #dfe1e6 !important;
+            background: #fff !important;
+            margin-bottom: 16px;
+        }
+
+        .card-header {
+            background-color: #fafbfc !important;
+            border-bottom: 1px solid #dfe1e6 !important;
+            font-weight: 600;
+            color: #172b4d !important;
+            padding: 12px 16px;
+        }
+
+        /* 左侧菜单栏 (修正了全部 404 链接) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100vh;
+            background-color: #001529;
+            color: #a6adb4;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #002140;
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-header {
+            padding: 15px 20px 5px 20px;
+            font-size: 12px;
+            color: #6c7a86;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .nav-link {
+            color: #a6adb4;
+            padding: 10px 20px;
+            display: block;
+            text-decoration: none;
+            font-size: 13px;
+            border-left: 3px solid transparent;
+        }
+
+            .nav-link:hover {
+                color: #fff;
+                background-color: #1890ff;
+            }
+
+            .nav-link.active-link {
+                background-color: #1890ff;
+                color: #fff;
+            }
+
+        .main-wrapper {
+            margin-left: 200px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-header {
+            height: 50px;
+            background-color: #fff;
+            border-bottom: 1px solid #dfe1e6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 999;
+        }
+
+        .content-body {
+            padding: 20px;
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">物业管理 ERP</div>
+        <ul class="nav-list mt-2 pb-5">
+            @if (User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                <li class="nav-item mb-2"><a href="/AdminDashboard/Index" class="nav-link text-white fw-bold">数据总览大屏</a></li>
+
+                <li class="nav-header">资产管理</li>
+                <li class="nav-item"><a href="/AdminSmartHouse/Index" class="nav-link">房屋台账</a></li>
+                <li class="nav-item"><a href="/AdminParking/Index" class="nav-link">车位台账</a></li>
+                <li class="nav-item"><a href="/AdminEquipment/Index" class="nav-link">设备台账</a></li>
+                <li class="nav-item"><a href="/AdminMaterial/Index" class="nav-link">物资库存</a></li>
+
+                <li class="nav-header">客户服务</li>
+                <li class="nav-item"><a href="/AdminOwner/Index" class="nav-link">业主档案</a></li>
+                <!-- 👇 修正：指向 AdminOwner -->
+                <li class="nav-item"><a href="/AdminOwner/OwnerPortrait" class="nav-link">群体画像库</a></li>
+                <li class="nav-item"><a href="/AdminRepair/Index" class="nav-link">工单中心</a></li>
+                <li class="nav-item"><a href="/AdminAnnouncement/Index" class="nav-link">公告发布</a></li>
+                <!-- 👇 修正：指向 AdminOwner -->
+                <li class="nav-item"><a href="/AdminOwner/MassMessage" class="nav-link">消息推送群发</a></li>
+
+                <li class="nav-header">财务与安防</li>
+                <li class="nav-item"><a href="/AdminFee/Index" class="nav-link">财务账单</a></li>
+                <!-- 👇 修正：指向 AdminFee -->
+                <li class="nav-item"><a href="/AdminFee/ArrearsPenetration" class="nav-link">欠费穿透催缴</a></li>
+                <!-- 👇 修正：指向 AdminFee -->
+                <li class="nav-item"><a href="/AdminFee/FeeConfig" class="nav-link">计费规则引擎</a></li>
+                <li class="nav-item"><a href="/AdminVisitor/Index" class="nav-link">访客出入</a></li>
+
+                <li class="nav-header">系统设置</li>
+                <li class="nav-item"><a href="/AdminStaff/Index" class="nav-link">权限管理</a></li>
+                <!-- 👇 修正：指向 AdminStaff -->
+                <li class="nav-item"><a href="/AdminStaff/WorkOrderMonitor" class="nav-link">员工绩效考核</a></li>
+            }
+        </ul>
+    </div>
+
+    <div class="main-wrapper">
+        <header class="top-header">
+            <div style="font-size: 13px; color: #5e6c84;" id="currentDate"></div>
+            <div>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <span style="font-size: 13px; color: #172b4d; font-weight: 600; margin-right: 15px;">当前账户：@User.Identity.Name</span>
+                    <a href="/Account/Logout" style="font-size: 13px; color: #cb2431; text-decoration: none;">安全退出</a>
+                }
+            </div>
+        </header>
+        <main class="content-body">@RenderBody()</main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('zh-CN', options);
+
+        document.addEventListener("DOMContentLoaded", function() {
+            let currentPath = window.location.pathname;
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                if(link.getAttribute('href') === currentPath) link.classList.add('active-link');
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

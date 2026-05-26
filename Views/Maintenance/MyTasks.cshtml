@@ -1,0 +1,125 @@
+﻿@model IEnumerable<PropertySystem.Models.RepairRequest>
+@{
+    Layout = "~/Views/Shared/_MaintenanceLayout.cshtml"; ViewData["Title"] = "我的工作台"; ViewData["ActiveTab"] = "Task";
+}
+
+@if (TempData["Msg"] != null)
+{
+    <div class="alert alert-success fw-bold text-center fs-6 shadow-sm">@TempData["Msg"]</div>
+}
+
+@foreach (var item in Model)
+{
+    <div class="card shadow border-0 mb-4" style="border-radius:15px;">
+        <div class="card-header bg-dark text-white d-flex justify-content-between">
+            <strong>单号：#@item.Id</strong>
+            <span class="badge bg-@(item.Status == "维修中" ? "warning text-dark" : "info text-dark")">@item.Status</span>
+        </div>
+        <div class="card-body">
+            <h5 class="fw-bold text-primary mb-1">@item.RepairType</h5>
+            <p class="text-muted small mb-3">报修内容：@item.Description</p>
+
+            @if (item.Status == "维修中")
+            {
+                <!-- 接单后的作业区 -->
+                <div class="bg-light p-3 rounded mb-3 border">
+                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-person-fill text-primary"></i> @item.Owner?.Name</h6>
+                    <p class="mb-2 text-danger fw-bold"><i class="bi bi-house-door-fill"></i> @item.Owner?.RoomNo</p>
+                    <!-- 模拟隐私号拨打 -->
+                    <button class="btn btn-outline-primary btn-sm w-100 fw-bold" onclick="alert('安全保护中：正在通过隐私转接号【170-XXXX-XXXX】呼叫业主...')">
+                        <i class="bi bi-telephone-outbound"></i> 一键联系业主 (隐私保护)
+                    </button>
+                </div>
+
+                <button class="btn btn-success btn-lg w-100 fw-bold" onclick="openFinishModal(@item.Id)">现场已修好，拍照结单</button>
+            }
+            else
+            {
+                <div class="alert alert-info text-center border-0 mb-0 fw-bold">等待业主验收评价中...</div>
+            }
+        </div>
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="text-center text-muted p-5 mt-4">您目前没有正在处理的任务。</div>
+}
+
+<!-- 结单拍照弹窗 -->
+<div class="modal fade" id="finishModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="align-items:flex-end; margin:0; height:100%;">
+        <div class="modal-content border-0" style="border-radius:20px 20px 0 0;">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold">上传完工凭证</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/Maintenance/FinishTask" enctype="multipart/form-data" class="modal-body">
+                <input type="hidden" name="id" id="taskId" />
+                <div class="alert alert-warning small py-2 mb-3">要求：必须拍摄修复后的现场清晰照片，系统将自动打上时间水印防作弊。</div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">现场完工照片 (必填)</label>
+                    <input type="file" name="imageFile" class="form-control form-control-lg" accept="image/*" capture="camera" required />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">维修处理日志记录</label>
+                    <textarea name="notes" class="form-control bg-light" rows="3" placeholder="写下你换了什么零件、做了什么处理..." required></textarea>
+                    <hr class="border-secondary opacity-25 my-4" />
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-primary"><i class="bi bi-box-seam"></i> 申报警用物料 (选填)</label>
+                        <p class="small text-muted mb-2">消耗后系统将自动扣除库存并核算成本。</p>
+
+                        <div id="materialList"></div>
+                        <button type="button" class="btn btn-sm btn-outline-primary w-100 fw-bold border-dashed" onclick="addMaterialRow()">添加消耗项</button>
+                    </div>
+
+                </div>
+                <button type="submit" class="btn btn-success btn-lg w-100 fw-bold py-3 shadow">确认完工</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script> function openFinishModal(id) { document.getElementById('taskId').value = id; new bootstrap.Modal(document.getElementById('finishModal')).show(); } </script>
+<script>
+
+    function openFinishModal(id) {
+        document.getElementById('taskId').value = id;
+        document.getElementById('materialList').innerHTML = ''; // 清空上次的
+        new bootstrap.Modal(document.getElementById('finishModal')).show();
+    }
+
+    function addMaterialRow() {
+        let list = document.getElementById('materialList');
+        // 将后台传来的材料渲染进下拉框
+        let options = `<option value="">选择物资</option>`;
+        @foreach (var m in ViewBag.AvailableMaterials)
+        {
+                <text>options += `<option value="@m.Id">@m.Name (剩 @m.Stock @m.Unit)</option>`;</text>
+        }
+
+        let html = `
+            <div class="row gx-1 mb-2 material-row">
+                <div class="col-7"><select name="materialIds" class="form-select form-select-sm border-primary" required>${options}</select></div>
+                <div class="col-3"><input type="number" name="quantities" class="form-control form-control-sm text-center" min="1" placeholder="数量" required /></div>
+                <div class="col-2"><button type="button" class="btn btn-sm btn-outline-danger w-100" onclick="this.closest('.material-row').remove()">✖</button></div>
+            </div>`;
+        list.insertAdjacentHTML('beforeend', html);
+    }
+</script>
+<style>
+    .border-dashed {
+        border-style: dashed !important;
+        border-width: 2px !important;
+    }
+</style>
+
+<style>
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out;
+        transform: translateY(100%);
+    }
+
+    .modal.show .modal-dialog {
+        transform: translateY(0);
+    }
+</style>

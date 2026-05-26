@@ -1,0 +1,140 @@
+﻿@model IEnumerable<PropertySystem.Models.House>
+@{
+    ViewData["Title"] = "楼房可视化";
+}
+
+<div class="container-fluid mt-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>第 @ViewBag.BuildingNo 栋 - 可视化销控矩阵</h2>
+        <div>
+            <span class="badge bg-success fs-6 me-2">🟩 绿色：空置 (待绑定)</span>
+            <span class="badge bg-secondary fs-6 me-3">⬛ 灰色：已入住</span>
+            <a href="/AdminSmartHouse/Index" class="btn btn-outline-dark">返回沙盘</a>
+        </div>
+    </div>
+    <hr />
+
+    <div class="row">
+        <!-- 分别渲染A单元和B单元 -->
+        @foreach (var unit in new[] { "A", "B" })
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-dark">
+                    <div class="card-header bg-dark text-white text-center fs-5 fw-bold">
+                        @unit 单元
+                    </div>
+                    <div class="card-body bg-light p-4">
+                        @{
+                            // 获取该单元所有房屋，并按楼层高度倒序排列 (顶层在最上面)
+                            var unitHouses = Model.Where(h => h.UnitNo == unit).ToList();
+                            // 自定义排序规则：B1 排在最下面，数字越大排在越上面
+                            var floors = unitHouses.Select(h => h.Floor).Distinct()
+                            .OrderByDescending(f => f == "B1" ? -1 : int.Parse(f)).ToList();
+                        }
+
+                        @foreach (var floor in floors)
+                        {
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="me-3 fw-bold text-muted" style="width: 50px; text-align:right;">
+                                    @(floor == "B1" ? "B1层" : floor + " F")
+                                </div>
+                                <div class="d-flex flex-grow-1 gap-2">
+                                    @foreach (var room in unitHouses.Where(h => h.Floor == floor).OrderBy(h => h.RoomNo))
+                                    {
+                                        <!-- 根据是否有 OwnerId 改变颜色 -->
+                                        <!-- 根据是否有 OwnerId 改变颜色 -->
+                                        var isVacant = room.OwnerId == null;
+                                        var cardClass = isVacant ? "bg-success text-white" : "bg-secondary text-white opacity-75";
+                                        var ownerText = isVacant ? "空置(点击绑定)" : "👤 " + room.Owner.Name;
+
+                                        if (isVacant)
+                                        {
+                                            <!-- 空房子 -->
+                                            <div class="card bg-white border-success flex-grow-1 text-center room-card"
+                                                 onclick="openBindModal(@room.Id, '@room.BuildingNo 栋 @room.UnitNo 单元 @room.RoomNo')"
+                                                 style="cursor: pointer; min-height: 60px;">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0 fw-bold text-dark">@room.RoomNo</h5>
+                                                    <small class="text-success" style="font-size: 0.75rem;">空置</small>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <!-- 已入住房子 -->
+                                            <a href="/AdminSmartHouse/Edit/@room.Id" class="card bg-light border-secondary flex-grow-1 text-center room-card text-decoration-none"
+                                               style="min-height: 60px;">
+                                                <div class="card-body p-2">
+                                                    <h5 class="mb-0 fw-bold text-dark">@room.RoomNo</h5>
+                                                    <small class="text-muted" style="font-size: 0.75rem;">@(room.Owner?.Name ?? "未知")</small>
+                                                </div>
+                                            </a>
+                                        }
+
+
+
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer bg-dark" style="height: 10px;"></div> <!-- 模拟大楼地基 -->
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .room-card {
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+
+        .room-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+</style>
+<!-- 神级交互：图上作业绑定弹窗 -->
+<div class="modal fade" id="bindModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-success shadow-sm">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold">快速分配房产</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="/AdminSmartHouse/QuickBind">
+                <div class="modal-body p-4 text-center">
+                    <h4 class="text-success mb-3" id="modalRoomName">--</h4>
+                    <input type="hidden" name="houseId" id="modalHouseId" />
+                    <input type="hidden" name="buildingNo" value="@ViewBag.BuildingNo" />
+
+                    <label class="form-label fw-bold text-start w-100">请选择要入住的业主：</label>
+                    <select name="ownerId" class="form-select form-select-lg border-primary" required>
+                        <option value="">-- 下拉选择或搜索业主 --</option>
+                        @foreach (var o in ViewBag.AllOwners)
+                        {
+                            <option value="@o.Id">@o.Name (电话: @o.Phone)</option>
+                        }
+                    </select>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-success fw-bold">确认分配过户</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openBindModal(houseId, roomName) {
+        document.getElementById('modalHouseId').value = houseId;
+        document.getElementById('modalRoomName').innerText = "当前选择: " + roomName;
+        var myModal = new bootstrap.Modal(document.getElementById('bindModal'));
+        myModal.show();
+    }
+</script>
+

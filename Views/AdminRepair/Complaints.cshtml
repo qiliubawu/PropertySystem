@@ -1,0 +1,66 @@
+﻿@model IEnumerable<PropertySystem.Models.Complaint>
+@{
+    ViewData["Title"] = "客户投诉处理中心";
+}
+
+<div class="container-fluid mt-4 px-4">
+    <!-- 顶层服务中心大菜单 -->
+    <ul class="nav nav-tabs fs-5 fw-bold mb-4">
+        <li class="nav-item">
+            <a class="nav-link text-muted" href="/AdminRepair/Index"><i class="bi bi-tools"></i> 报修调度</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active text-danger" href="/AdminRepair/Complaints"><i class="bi bi-chat-right-dots-fill"></i> 投诉建议信箱</a>
+        </li>
+    </ul>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success fw-bold shadow-sm">@TempData["Success"]</div>
+    }
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100 border-top border-4 border-@(item.Status == "待处理" ? "danger" : "success")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                            <span class="badge bg-@(item.Status == "待处理" ? "danger" : "success")">@item.Status</span>
+                            <span class="text-muted small">等待@item.CreateTime.ToString("yyyy-MM-dd HH:mm")</span>
+                        </div>
+                        <h5 class="fw-bold text-dark">@item.Title</h5>
+                        <p class="text-muted mb-3" style="min-height: 48px;">@item.Content</p>
+
+                        <div class="bg-light p-2 rounded small text-dark mb-3">
+                            业主: <strong>@item.Owner?.Name</strong> (@item.Owner?.Phone)
+                        </div>
+
+                        @if (item.Status == "待处理")
+                        {
+                            <form method="post" action="/AdminRepair/ReplyComplaint">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <div class="input-group">
+                                    <input type="text" name="replyContent" class="form-control border-danger" placeholder="输入回复/安抚内容..." required />
+                                    <button class="btn btn-danger fw-bold" type="submit">回复结案</button>
+                                </div>
+                                <small class="text-muted mt-1 d-block"><i class="bi bi-bell"></i> 回复将直接推送到业主手机并红点提醒</small>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success py-2 mb-0 border-0">
+                                <strong>物业管家已回复：</strong><br />
+                                <span class="text-dark">@item.Reply</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center text-muted p-5 fs-5">信箱目前空空如也，业主们都很满意！</div>
+        }
+    </div>
+</div>

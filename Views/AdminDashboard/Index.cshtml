@@ -1,0 +1,109 @@
+﻿@{
+    ViewData["Title"] = "工作台总览";
+}
+<script src="https://cdn.staticfile.net/echarts/5.5.0/echarts.min.js"></script>
+
+<div class="container-fluid mt-2">
+    <div class="d-flex justify-content-between align-items-end mb-4 pb-2 border-bottom">
+        <h5 class="text-dark fw-bold mb-0">全域业务数据概览</h5>
+    </div>
+
+    <!-- 顶部四项核心指标 (灰底白框极简风格) -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card h-100 p-3 border-start border-4 border-primary">
+                <div class="text-muted small mb-1">本期财务应收 (元)</div>
+                <h3 class="fw-bold mb-2">@ViewBag.FinanceExpected.ToString("N0")</h3>
+                <div class="small text-muted border-top pt-2">
+                    实收: @ViewBag.FinanceCollected.ToString("N0") <span class="float-end text-primary">进度: @ViewBag.CollectionRate%</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 p-3 border-start border-4 border-success">
+                <div class="text-muted small mb-1">资产去化率</div>
+                <h3 class="fw-bold mb-2">@ViewBag.OccupancyRate%</h3>
+                <div class="small text-muted border-top pt-2">
+                    售出房屋: @ViewBag.TotalHouses <span class="float-end">售出车位: @ViewBag.SoldParkings</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 p-3 border-start border-4 border-warning">
+                <div class="text-muted small mb-1">设备故障率监控</div>
+                <h3 class="fw-bold mb-2">@ViewBag.EqError <small class="fs-6 fw-normal text-muted">起</small></h3>
+                <div class="small text-muted border-top pt-2">
+                    总设备: @ViewBag.EqTotal <span class="float-end text-warning">临期预警: @ViewBag.EqUrgent</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 p-3 border-start border-4 border-danger">
+                <div class="text-muted small mb-1">待处理服务工单</div>
+                <h3 class="fw-bold mb-2">@(ViewBag.RepairPending + ViewBag.ComplaintPending) <small class="fs-6 fw-normal text-muted">件</small></h3>
+                <div class="small text-muted border-top pt-2">
+                    报修待派: @ViewBag.RepairPending <span class="float-end text-danger">投诉待回: @ViewBag.ComplaintPending</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表区 (纯净白底，高度严格限制在 300px) -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">财务回款分析</div>
+                <div class="card-body">
+                    <!-- 👇 这里强制固定了高度 -->
+                    <div id="chartPie" style="height: 300px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-light">综合运营指标评价</div>
+                <div class="card-body">
+                    <!-- 👇 这里强制固定了高度 -->
+                    <div id="radarChart" style="height: 300px; width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var myPie = echarts.init(document.getElementById('chartPie'));
+        myPie.setOption({
+            tooltip: { trigger: 'item' },
+            legend: { top: 'bottom' },
+            color: ['#1890ff', '#f5222d'],
+            series: [{
+                name: '资金状况', type: 'pie', radius: ['40%', '70%'],
+                label: { show: false }, labelLine: { show: false },
+                data: [ { value: @(ViewBag.FinanceCollected ?? 0), name: '已入账' }, { value: @(ViewBag.TotalUnpaid ?? 0), name: '欠费' } ]
+
+
+            }]
+        });
+
+        var myRadar = echarts.init(document.getElementById('radarChart'));
+        var eqScore = 100 - (@ViewBag.EqError * 5); if(eqScore < 0) eqScore = 0;
+        myRadar.setOption({
+            tooltip: {},
+            radar: {
+                indicator: [ { name: '营收', max: 100 }, { name: '物联', max: 100 }, { name: '客服', max: 100 }, { name: '去化', max: 100 }, { name: '安防', max: 100 } ],
+                center: ['50%', '50%'], radius: '65%'
+            },
+            series: [{
+                name: '指标', type: 'radar',
+                data: [{
+                    value: [@ViewBag.CollectionRate, eqScore, 85, @ViewBag.OccupancyRate, 95], name: '当前',
+                    itemStyle: { color: '#1890ff' }, areaStyle: { color: 'rgba(24, 144, 255, 0.2)' }
+                }]
+            }]
+        });
+
+        window.addEventListener('resize', () => { myPie.resize(); myRadar.resize(); });
+    });
+</script>

@@ -1,0 +1,165 @@
+﻿@{
+    Layout = "~/Views/Shared/_OwnerLayout.cshtml";
+    ViewData["Title"] = "业主服务";
+    ViewData["ActiveTab"] = "Home";
+}
+
+<!-- 极简头部卡片 -->
+<div class="bg-white p-4 mb-3 border-bottom d-flex justify-content-between align-items-center">
+    <div>
+        <h5 class="fw-bold text-dark mb-1">欢迎回来，业主</h5>
+        <span class="text-muted small">智慧社区为您服务</span>
+    </div>
+    <!-- 消息收件箱入口 -->
+    <div style="cursor: pointer; position: relative;" data-bs-toggle="modal" data-bs-target="#msgModal">
+        <i class="bi bi-bell fs-4 text-dark"></i>
+        @if (ViewBag.UnreadCount > 0)
+        {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                @ViewBag.UnreadCount
+            </span>
+        }
+    </div>
+</div>
+
+<!-- 商务风应用菜单 (类支付宝) -->
+<div class="bg-white p-3 mb-3 border-bottom border-top">
+    <div class="row text-center">
+        <div class="col-3">
+            <a href="/Owner/Bills" class="text-decoration-none">
+                <div class="mb-2"><i class="bi bi-wallet2 fs-2 text-primary"></i></div>
+                <span class="text-dark small">物业缴费</span>
+            </a>
+        </div>
+        <div class="col-3">
+            <a href="/Owner/Services" class="text-decoration-none">
+                <div class="mb-2"><i class="bi bi-tools fs-2 text-primary"></i></div>
+                <span class="text-dark small">报修服务</span>
+            </a>
+        </div>
+        <div class="col-3">
+            <a href="/Visitor/Register" target="_blank" class="text-decoration-none">
+                <div class="mb-2"><i class="bi bi-qr-code-scan fs-2 text-primary"></i></div>
+                <span class="text-dark small">访客通行</span>
+            </a>
+        </div>
+        <div class="col-3">
+            <a href="/Owner/Profile" class="text-decoration-none">
+                <div class="mb-2"><i class="bi bi-house-door fs-2 text-primary"></i></div>
+                <span class="text-dark small">我的房产</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 极简公告列表 -->
+<div class="bg-white p-3 border-top">
+    <h6 class="fw-bold text-dark mb-3 border-start border-primary border-3 ps-2">社区公告</h6>
+    @foreach (var item in ViewBag.Announcements)
+    {
+        <div class="border-bottom py-3" onclick="showContent('@item.Title', `@Html.Raw(item.Content.Replace("`", "\\`").Replace("'", "\\'"))`)">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="text-dark">@if(item.IsTop){
+                <span class="text-danger">[置顶]</span>
+            }
+ @item.Title</strong>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="text-muted" style="font-size: 0.8rem;">@item.Type</span>
+            <span class="text-muted" style="font-size: 0.8rem;">@item.PublishTime.ToString("yyyy-MM-dd")</span>
+        </div>
+    </div>
+        }
+</div>
+
+<!-- 公告阅读弹窗 (保持原样) -->
+<div class="modal fade" id="contentModal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-bold" id="mTitle">公告详情</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-white" id="mContent" style="font-family: sans-serif;"></div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="msgModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="align-items: flex-end; margin:0; height:100%;">
+        <div class="modal-content border-0" style="border-radius: 12px 12px 0 0; padding-bottom:env(safe-area-inset-bottom); height: 85vh;">
+            <div class="modal-header bg-light">
+                <h6 class="modal-title fw-bold mx-auto">消息中心</h6>
+                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <ul class="list-group list-group-flush">
+                    @foreach (var msg in ViewBag.MyMessages)
+                    {
+                        <li class="list-group-item py-3" id="msgCard_@msg.Id" onclick="readMsg(@msg.Id, '@msg.Title', `@msg.Content`)">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div>
+                                    @if (!msg.IsRead)
+                                    {
+                                        <span class="badge bg-danger rounded-circle p-1 me-1" id="redDot_@msg.Id"> </span>
+                                    }
+                                    <strong class="text-dark">@msg.Title</strong>
+                                </div>
+                                <small class="text-muted">@msg.CreateTime.ToString("MM-dd")</small>
+                            </div>
+                            <div class="text-muted small text-truncate">@msg.Content</div>
+                        </li>
+                    }
+                    @if (!((IEnumerable<dynamic>)ViewBag.MyMessages).Any())
+                    {
+                        <li class="list-group-item text-center text-muted p-5 border-0">暂无消息</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 消息详情弹窗 -->
+<div class="modal fade" id="msgDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-3">
+            <div class="modal-header border-bottom pb-3">
+                <h6 class="modal-title fw-bold" id="detailTitle"></h6>
+            </div>
+            <div class="modal-body text-dark" style="line-height: 1.6;" id="detailContent"></div>
+            <div class="modal-footer border-top-0 d-flex justify-content-center">
+                <button type="button" class="btn btn-primary px-5" data-bs-dismiss="modal">我知道了</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showContent(title, content) { document.getElementById('mTitle').innerText = title; document.getElementById('mContent').innerHTML = content; new bootstrap.Modal(document.getElementById('contentModal')).show(); }
+    function readMsg(id, title, content) {
+        document.getElementById('detailTitle').innerText = title; document.getElementById('detailContent').innerText = content;
+        new bootstrap.Modal(document.getElementById('msgDetailModal')).show();
+        var redDot = document.getElementById('redDot_' + id);
+        if (redDot) { fetch('/Owner/ReadMessage?msgId=' + id, { method: 'POST' }).then(() => { redDot.remove(); }); }
+    }
+</script>
+<style>
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out;
+        transform: translateY(100%);
+    }
+
+    .modal.show .modal-dialog {
+        transform: translateY(0);
+    }
+
+    #contentModal.fade .modal-dialog {
+        transform: translateX(100%);
+    }
+
+    #contentModal.show .modal-dialog {
+        transform: translateX(0);
+    }
+</style>

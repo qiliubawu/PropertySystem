@@ -1,0 +1,143 @@
+﻿@model PropertySystem.Models.RepairRequest
+@{
+    ViewData["Title"] = "工单追踪";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>工单全生命周期追踪 (单号：#@Model.Id)</h2>
+        <button class="btn btn-outline-dark" onclick="history.back()">返回调度大厅</button>
+    </div>
+    <hr />
+
+    <div class="row">
+        <!-- 左侧：基础信息 -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="fw-bold text-primary mb-3">@Model.RepairType</h5>
+                    <p class="fs-5 text-dark">@Model.Description</p>
+                    <hr />
+                    <p class="mb-1"><strong>报修业主：</strong>@Model.Owner?.Name (@Model.Owner?.Phone)</p>
+                    <p class="mb-1"><strong>所在房屋：</strong>@Model.Owner?.RoomNo</p>
+                    <p class="mb-3"><strong>派单处理人：</strong>@(Model.Worker?.FullName ?? "尚未派单")</p>
+
+                    @if (!string.IsNullOrEmpty(Model.BeforeImage))
+                    {
+                        <strong class="d-block mb-2 text-danger">现场损坏照片：</strong>
+                        <img src="@Model.BeforeImage" class="img-fluid rounded shadow-sm" style="max-height: 200px;" />
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：时间轴 (Timeline) -->
+        <div class="col-md-7">
+            <div class="timeline p-4 bg-white rounded shadow-sm border">
+
+                <!-- 节点1：提交 -->
+                <div class="timeline-item">
+                    <div class="timeline-icon bg-danger text-white"><i class="bi bi-megaphone"></i></div>
+                    <div class="timeline-content">
+                        <h5 class="fw-bold text-danger">1. 发起报修工单</h5>
+                        <p class="text-muted small">@Model.CreateTime.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                    </div>
+                </div>
+
+                <!-- 节点2：接单/派单 -->
+                <div class="timeline-item @(Model.AcceptTime == null ? "opacity-50" : "")">
+                    <div class="timeline-icon @(Model.AcceptTime != null ? "bg-warning text-dark" : "bg-secondary text-white")">2</div>
+                    <div class="timeline-content">
+                        <h5 class="fw-bold @(Model.AcceptTime != null ? "text-warning" : "text-muted")">2. 物业接单派发</h5>
+                        @if (Model.AcceptTime != null)
+                        {
+                            <p class="text-muted small">@Model.AcceptTime?.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                            <p class="small">已指派给维修工：<strong>@Model.Worker?.FullName</strong> 前往处理</p>
+                        }
+                        else
+                        {
+
+                            <p class="text-muted small">等待调度中心派单...</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- 节点3：处理完成 -->
+                <div class="timeline-item @(Model.FinishTime == null ? "opacity-50" : "")">
+                    <div class="timeline-icon @(Model.FinishTime != null ? "bg-info text-dark" : "bg-secondary text-white")">3</div>
+                    <div class="timeline-content">
+                        <h5 class="fw-bold @(Model.FinishTime != null ? "text-info" : "text-muted")">3. 维修完成并上传结果</h5>
+                        @if (Model.FinishTime != null)
+                        {
+                            <p class="text-muted small">@Model.FinishTime?.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                            <div class="alert alert-info py-2 small">师傅留言：@Model.RepairNotes</div>
+                            @if (!string.IsNullOrEmpty(Model.AfterImage))
+                            {
+                                <img src="@Model.AfterImage" class="img-thumbnail" style="max-height: 120px;" />
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted small">等待维修工上门处理...</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- 节点4：确认与评价 -->
+                <div class="timeline-item @(Model.ConfirmTime == null ? "opacity-50 border-0" : "border-0")">
+                    <div class="timeline-icon @(Model.ConfirmTime != null ? "bg-success text-white" : "bg-secondary text-white")">4</div>
+                    <div class="timeline-content">
+                        <h5 class="fw-bold @(Model.ConfirmTime != null ? "text-success" : "text-muted")">4. 业主验收与服务评价</h5>
+                        @if (Model.ConfirmTime != null)
+                        {
+                            <p class="text-muted small">@Model.ConfirmTime?.ToString("yyyy-MM-dd HH:mm:ss")</p>
+                            <div class="bg-light p-3 rounded border border-success">
+                                <div class="text-warning fs-5 fw-bold mb-1">@Html.Raw(new String('⭐', Model.Rating ?? 0))</div>
+                                <span>“@Model.Evaluation”</span>
+                            </div>
+                        }
+                        else
+                        {
+
+                            <p class="text-muted small">等待业主确认评分结案...</p>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 极致优美的垂直时间轴 CSS */
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-bottom: 30px;
+        border-left: 3px solid #dee2e6;
+        padding-left: 30px;
+    }
+
+        .timeline-item:last-child {
+            border-left: 3px solid transparent;
+        }
+
+    .timeline-icon {
+        position: absolute;
+        left: -18px;
+        top: 0;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 34px;
+        font-weight: bold;
+        z-index: 10;
+        box-shadow: 0 0 0 4px #fff;
+    }
+</style>

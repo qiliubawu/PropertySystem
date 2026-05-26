@@ -1,0 +1,33 @@
+﻿@model dynamic
+
+<nav aria-label="Page navigation" class="mt-4 mb-5">
+    <ul class="pagination justify-content-center shadow-sm" style="border-radius: 10px;">
+        <!-- 上一页按钮 -->
+        <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+            <a class="page-link px-4 fw-bold" href="#" onclick="goToPage(@(Model.PageIndex - 1)); return false;">« 上一页</a>
+        </li>
+
+        <!-- 页码信息 -->
+        <li class="page-item disabled">
+            <span class="page-link text-dark bg-light px-4">
+                第 <strong class="text-primary">@Model.PageIndex</strong> 页 /
+                共 <strong>@Model.TotalPages</strong> 页
+                <small class="text-muted">(每页20条)</small>
+            </span>
+        </li>
+
+        <!-- 下一页按钮 -->
+        <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+            <a class="page-link px-4 fw-bold" href="#" onclick="goToPage(@(Model.PageIndex + 1)); return false;">下一页 »</a>
+        </li>
+    </ul>
+</nav>
+
+<script>
+    // 智能翻页函数：自动保留网址栏上的所有搜索条件
+    function goToPage(pageNum) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('pageNumber', pageNum); // 修改或添加 pageNumber 参数
+        window.location.href = url.href;             // 跳转
+    }
+</script>

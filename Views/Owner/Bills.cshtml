@@ -1,0 +1,183 @@
+﻿@{
+    Layout = "~/Views/Shared/_OwnerLayout.cshtml";
+    ViewData["Title"] = "生活缴费";
+    ViewData["ActiveTab"] = "Bill"; // 激活底部导航栏的缴费图标
+}
+
+<!-- 顶部大卡片：欠费总额统计 -->
+<!-- 极简财务看板 -->
+<div class="bg-white p-4 text-center mb-3 border" style="border-radius: 6px;">
+    <p class="text-muted small mb-1">当前待缴欠费 (元)</p>
+    <h2 class="fw-bold text-dark mb-0" style="font-family: monospace;">@(((IEnumerable<PropertySystem.Models.Bill>)ViewBag.UnpaidBills).Sum(b => b.Amount).ToString("N2"))</h2>
+</div>
+
+
+<!-- 支付成功提示 -->
+@if (TempData["PaySuccess"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show text-center py-2 fs-6 shadow-sm">
+        <i class="bi bi-check-circle-fill"></i> @TempData["PaySuccess"]
+        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- 页面内顶部切换 Tab (待缴费 vs 已缴费) -->
+<ul class="nav nav-pills nav-fill mb-3 bg-white p-1 rounded shadow-sm" id="billTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-bold" id="unpaid-tab" data-bs-toggle="pill" data-bs-target="#unpaid" type="button">待缴账单</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold" id="paid-tab" data-bs-toggle="pill" data-bs-target="#paid" type="button">历史记录</button>
+    </li>
+</ul>
+
+<!-- Tab 内容区 -->
+<div class="tab-content pb-4" id="billTabContent">
+
+    <!-- 🔴 待缴费列表 -->
+    <div class="tab-pane fade show active" id="unpaid" role="tabpanel">
+        @foreach (var bill in ViewBag.UnpaidBills)
+        {
+            <div class="card shadow-sm border-0 mb-3" style="border-radius: 12px; border-left: 5px solid #ff7675 !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                        <span class="text-secondary fw-bold">账单月份: @bill.BillingMonth</span>
+                        <span class="badge bg-danger">待支付</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1">@bill.FeeType</h5>
+                            <small class="text-muted">@bill.Remark</small>
+                        </div>
+                        <h4 class="text-danger fw-bold mb-0">¥@bill.Amount</h4>
+                    </div>
+                    <!-- 唤起收银台弹窗 -->
+                    <button class="btn btn-primary w-100 fw-bold" onclick="openPayModal(@bill.Id, '@bill.FeeType', @bill.Amount, '@bill.BillingMonth')">
+                        立即在线支付
+                    </button>
+                </div>
+            </div>
+        }
+        @if (!((IEnumerable<dynamic>)ViewBag.UnpaidBills).Any())
+        {
+            <div class="text-center text-muted p-5 mt-4">
+                <i class="bi bi-emoji-smile fs-1 text-success mb-2 d-block"></i>
+                <p>太棒了！您当前没有任何欠费账单</p>
+            </div>
+        }
+    </div>
+
+    <!-- 🟢 历史缴费记录 -->
+    <div class="tab-pane fade" id="paid" role="tabpanel">
+        @foreach (var bill in ViewBag.PaidBills)
+        {
+            <div class="card shadow-sm border-0 mb-3 bg-light" style="border-radius: 12px; border-left: 5px solid #00b894 !important;">
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-dark">@bill.FeeType</strong>
+                        <span class="fw-bold text-success">- ¥@bill.Amount</span>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>账期: @bill.BillingMonth</span>
+                        <span><i class="bi bi-check-circle"></i> 已结清</span>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (!((IEnumerable<dynamic>)ViewBag.PaidBills).Any())
+        {
+            <div class="text-center text-muted p-5">暂无缴费历史记录</div>
+        }
+    </div>
+
+</div>
+
+<!-- 💸 模拟在线收银台弹窗 (Modal) -->
+<div class="modal fade" id="payModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="align-items: flex-end; margin:0; height:100%;">
+        <!-- 让弹窗像微信支付一样从底部滑出 -->
+        <div class="modal-content border-0" style="border-radius: 20px 20px 0 0; padding-bottom:env(safe-area-inset-bottom);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold mx-auto">智慧社区收银台</h5>
+                <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted mb-1" id="payTitle">--</p>
+                <h1 class="fw-bold mb-4" style="font-size: 2.5rem;">¥<span id="payAmount">0.00</span></h1>
+
+                <form method="post" action="/Owner/MockPay">
+                    <input type="hidden" name="billId" id="payBillId" />
+
+                    <!-- 支付方式选择 -->
+                    <div class="list-group mb-4 text-start">
+                        <label class="list-group-item d-flex gap-2">
+                            <input class="form-check-input flex-shrink-0" type="radio" name="payMethod" value="wechat" checked>
+                            <span><i class="bi bi-wechat text-success me-2"></i>微信支付 <small class="text-muted d-block">推荐</small></span>
+                        </label>
+                        <label class="list-group-item d-flex gap-2">
+                            <input class="form-check-input flex-shrink-0" type="radio" name="payMethod" value="alipay">
+                            <span><i class="bi bi-alipay text-primary me-2"></i>支付宝</span>
+                        </label>
+                    </div>
+
+                    <!-- 模拟指纹支付过程按钮 -->
+                    <button type="button" class="btn btn-success btn-lg w-100 py-3 fw-bold mb-2" id="confirmPayBtn" onclick="simulatePayment()">
+                        确认支付
+                    </button>
+                    <!-- 这个是真正的提交按钮，默认隐藏 -->
+                    <button type="submit" id="realSubmitBtn" class="d-none"></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 打开收银台，填入动态数据
+    function openPayModal(billId, feeType, amount, month) {
+        document.getElementById('payBillId').value = billId;
+        document.getElementById('payTitle').innerText = month + " " + feeType;
+        document.getElementById('payAmount').innerText = amount.toFixed(2);
+
+        // 重置按钮状态
+        var btn = document.getElementById('confirmPayBtn');
+        btn.innerHTML = '确认支付';
+        btn.disabled = false;
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-success');
+
+        var modal = new bootstrap.Modal(document.getElementById('payModal'));
+        modal.show();
+    }
+
+    // 模拟支付动画 (增强体验感)
+    function simulatePayment() {
+        var btn = document.getElementById('confirmPayBtn');
+        btn.disabled = true;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-secondary');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> 正在拉取支付凭证...';
+
+        setTimeout(function() {
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> 支付成功，正在跳转...';
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-success');
+
+            setTimeout(function() {
+                document.getElementById('realSubmitBtn').click(); // 真正触发后端的表单提交
+            }, 800);
+        }, 1500); // 模拟1.5秒的网络请求延迟
+    }
+</script>
+
+<style>
+    /* 覆盖 bootstrap 弹窗动画，使其从底部滑出 */
+    .modal.fade .modal-dialog {
+        transition: transform 0.3s ease-out;
+        transform: translateY(100%);
+    }
+
+    .modal.show .modal-dialog {
+        transform: translateY(0);
+    }
+</style>

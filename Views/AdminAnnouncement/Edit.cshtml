@@ -1,0 +1,47 @@
+﻿@model PropertySystem.Models.Announcement
+@{
+    ViewData["Title"] = "编辑公告";
+}
+
+<div class="container mt-4">
+    <h2>编辑公告</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post">
+                <!-- 如果是Edit页面，请在这里加上 <input type="hidden" asp-for="Id" /> -->
+                <input type="hidden" asp-for="Id" />
+                <div class="mb-3">
+                    <label class="form-label fw-bold">公告标题</label>
+                    <input asp-for="Title" class="form-control form-control-lg" placeholder="如：关于小区主管道停水通知" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">公告正文</label>
+                    <!-- 使用 rows="10" 让输入框变大 -->
+                    <textarea asp-for="Content" class="form-control" rows="10" placeholder="请输入详细的公告内容..."></textarea>
+                    <span asp-validation-for="Content" class="text-danger"></span>
+                </div>
+
+                <div class="form-check form-switch mb-4">
+                    <input asp-for="IsTop" class="form-check-input" type="checkbox" id="isTopSwitch">
+                    <label class="form-check-label text-danger fw-bold" for="isTopSwitch">
+                        设为紧急置顶公告 (将显示在最上方并标记为红色)
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">立即发布</button>
+                <a href="/AdminAnnouncement/Index" class="btn btn-link w-100 mt-2 text-center">返回列表</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

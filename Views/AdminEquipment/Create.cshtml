@@ -1,0 +1,96 @@
+﻿@model PropertySystem.Models.Equipment
+@{
+    ViewData["Title"] = "设备信息管理";
+}
+
+<div class="container mt-4">
+    <h2>录入设备资料</h2>
+    <hr />
+
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post">
+                <!-- <input type="hidden" asp-for="Id" /> (Edit页面专用) -->
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">设备编号 (唯一)</label>
+                        <input asp-for="EquipmentNo" class="form-control" placeholder="如：ELEV-001" />
+                        <span asp-validation-for="EquipmentNo" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">设备名称</label>
+                        <input asp-for="Name" class="form-control" placeholder="如：1栋A单元客梯" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">设备类别</label>
+                        <select asp-for="Category" class="form-select">
+                            <option value="特种设备">特种设备(电梯/锅炉)</option>
+                            <option value="消防安防">消防安防(监控/灭火器)</option>
+                            <option value="水电气暖">水电气暖(配电柜/水泵)</option>
+                            <option value="公共设施">公共设施(门禁/道闸)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label fw-bold">安装位置</label>
+                        <input asp-for="Location" class="form-control" placeholder="如：地下B1层水泵房" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">维保单位 / 负责人联系方式</label>
+                    <input asp-for="Supplier" class="form-control" placeholder="如：通力电梯 王工 138xxxx..." />
+                </div>
+
+                <div class="row mb-4 bg-light p-3 border rounded">
+                    <h5 class="text-primary mb-3">维保生命周期设定</h5>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">采购/安装日期</label>
+                        <input asp-for="PurchaseDate" class="form-control" type="date" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-success">上次保养日期</label>
+                        <input asp-for="LastMaintenanceDate" class="form-control" type="date" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label text-danger fw-bold">下次维保期限 (预警用)</label>
+                        <input asp-for="NextMaintenanceDate" class="form-control" type="date" />
+                        <small class="text-muted">若期限不足30天将触发系统报警</small>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">当前运行状态</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input asp-for="Status" type="radio" value="正常运行" class="form-check-input" id="s1" checked>
+                            <label class="form-check-label text-success" for="s1">🟢 正常运行</label>
+                        </div>
+                        <div class="form-check">
+                            <input asp-for="Status" type="radio" value="故障报修" class="form-check-input" id="s2">
+                            <label class="form-check-label text-warning" for="s2">🟡 故障报修</label>
+                        </div>
+                        <div class="form-check">
+                            <input asp-for="Status" type="radio" value="停用停机" class="form-check-input" id="s3">
+                            <label class="form-check-label text-secondary" for="s3">⚫ 停用停机</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg w-100">保存设备台账</button>
+                <a href="/AdminEquipment/Index" class="btn btn-link w-100 mt-2 text-center">返回列表</a>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

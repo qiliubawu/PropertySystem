@@ -1,0 +1,77 @@
+﻿@model PropertySystem.Models.Bill
+@{
+    ViewData["Title"] = "单条手工建账";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h5 class="fw-bold text-dark mb-3 pb-2 border-bottom">人工补录财务账单</h5>
+
+            <div class="alert alert-light border py-2 small mb-4 text-muted">
+                提示：单条建账主要用于处理系统无法自动计算的临时性杂费。若是常规物业费，请使用大盘的“批量发账”功能。
+            </div>
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger fw-bold small p-2 mb-3">@TempData["Error"]</div>
+            }
+
+            <form method="post" action="/AdminFee/Create" class="bg-white p-4 border rounded">
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">选择缴费业主</label>
+                    <select asp-for="OwnerId" class="form-select" required>
+                        <option value="">-- 下拉选择或搜索业主 --</option>
+                        @foreach (var o in ViewBag.Owners)
+                        {
+                            <option value="@o.Id">@o.Name (电话: @o.Phone)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label text-muted small fw-bold">账单月份</label>
+                        <input asp-for="BillingMonth" class="form-control" type="month" required />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-dark small fw-bold">账单金额 (元)</label>
+                        <!-- 开放手工输入金额 -->
+                        <input asp-for="Amount" class="form-control fw-bold" type="number" step="0.01" min="0.1" placeholder="如：50.00" required />
+                        <span asp-validation-for="Amount" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">收费类目名</label>
+                    <!-- 允许财务人员自己打字输入特殊的收费名目 -->
+                    <input asp-for="FeeType" class="form-control" placeholder="如：门禁卡补办费 / 绿化赔偿款" list="feeTypes" required autocomplete="off" />
+                    <!-- 👇 修复重点：闭合了 option 标签 -->
+                    <datalist id="feeTypes">
+                        <option value="住宅物业费"></option>
+                        <option value="公摊水电能耗费"></option>
+                        <option value="临时停车费"></option>
+                        <option value="门禁卡补办费"></option>
+                        <option value="违约赔偿金"></option>
+                    </datalist>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold">款项备注说明</label>
+                    <textarea asp-for="Remark" class="form-control" rows="2" placeholder="填写具体的扣费缘由以便业主查看..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">确认录入系统并出账</button>
+                <div class="text-center mt-3">
+                    <a href="/AdminFee/Index" class="text-muted text-decoration-none small">取消返回</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

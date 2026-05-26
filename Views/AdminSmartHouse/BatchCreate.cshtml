@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "一键建楼";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-warning">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h4 class="mb-0 fw-bold">智能批量建楼向导</h4>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+
+                    <p class="text-muted mb-4">设定楼宇参数，系统将自动生成整栋大楼（固定A/B双单元，每层4户标准配置）。</p>
+
+                    <form method="post" action="/AdminSmartHouse/BatchCreate">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">楼栋编号 (1-25)</label>
+                            <input type="number" name="buildingNo" class="form-control form-control-lg text-center" min="1" max="25" required placeholder="例如：2" />
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">地上总层数</label>
+                            <input type="number" name="totalFloors" class="form-control form-control-lg text-center" min="1" max="30" required placeholder="例如：15" />
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold text-dark" onclick="return confirm('系统将瞬间生成上百条数据，确认生成吗？');">⚡ 开始构建大楼</button>
+                        <a href="/AdminSmartHouse/Index" class="btn btn-link w-100 mt-2 text-center text-secondary">返回沙盘</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

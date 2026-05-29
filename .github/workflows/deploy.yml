@@ -1,11 +1,11 @@
-name: Build & Deploy PropertySystem
+name: Build & Deploy PropertySystem to SmarterASP
 
 on:
   push:
     branches: [main]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,15 +14,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
-      - name: Add SQLite package
-        run: |
-          sed -i '/<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer"/a \    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.*" />' PropertySystem.csproj
-
-      - name: Switch to SQLite
-        run: |
-          sed -i 's/\.UseSqlServer/.UseSqlite/' Program.cs
-          sed -i 's|"Server=.*TrustServerCertificate=True"|"Data Source=PropertySystem.db"|' appsettings.json
 
       - name: Restore
         run: dotnet restore
@@ -33,21 +24,11 @@ jobs:
       - name: Publish
         run: dotnet publish --configuration Release --no-build -o publish
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          name: property-system
-          path: publish/
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          server: win1020.site4now.net
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: publish/
+          server-dir: /
